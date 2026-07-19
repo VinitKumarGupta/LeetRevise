@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 5000;
 const corsOptions = {
     origin: [
         "http://localhost:5173",
-        "https://leetcode-revision-tracker.vercel.app/",
+        "https://leetcode-revision-tracker.vercel.app",
     ], // Vite default port
     credentials: true, // Allow cookies
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
