@@ -77,7 +77,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-bg-dark text-gray-100">
+    <div className="h-screen flex flex-col md:flex-row bg-bg-dark text-gray-100 overflow-hidden">
       {/* Mobile Top Navbar */}
       <header className="md:hidden flex items-center justify-between p-4 bg-card-dark/80 backdrop-blur-md border-b border-border-dark sticky top-0 z-50">
         <div className="flex items-center gap-2">
@@ -102,6 +102,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </button>
         </div>
       </header>
+
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
 
       {/* Sidebar Navigation */}
       <aside className={`
@@ -177,7 +185,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto max-h-[calc(100vh-60px)] md:max-h-screen p-6 md:p-10">
+      <main className="flex-1 overflow-y-auto p-6 md:p-10">
         <div className="max-w-6xl mx-auto animate-fade-in">
           {dueCount > 0 && location.pathname !== '/queue' && (
             <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between text-amber-300">

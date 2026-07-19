@@ -128,7 +128,7 @@ export const Queue: React.FC = () => {
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           {/* Status filter */}
-          <div className="flex items-center bg-gray-900/40 rounded-xl p-1 border border-border-dark/40">
+          <div className="flex items-center overflow-x-auto whitespace-nowrap bg-gray-900/40 rounded-xl p-1 border border-border-dark/40 w-full sm:w-auto scrollbar-none">
             {[
               { id: 'due', label: 'Due' },
               { id: 'upcoming', label: 'Upcoming' },

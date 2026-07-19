@@ -168,7 +168,7 @@ export const SyncAccount: React.FC = () => {
               Enter your public LeetCode username. Your submissions list must be public for the sync to fetch them.
             </p>
 
-            <form onSubmit={handleLinkUsername} className="flex gap-3 mt-2">
+            <form onSubmit={handleLinkUsername} className="flex flex-col sm:flex-row gap-3 mt-2">
               <input
                 type="text"
                 value={username}

@@ -192,46 +192,48 @@ export const ProblemDetail: React.FC = () => {
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
           Spaced Repetition Milestone
         </h2>
-        <div className="relative flex items-center justify-between mt-4 mb-2">
-          {/* Progress bar line */}
-          <div className="absolute left-0 right-0 h-1.5 bg-gray-900 rounded-full z-0"></div>
-          <div 
-            className="absolute left-0 h-1.5 bg-indigo-600 rounded-full z-0 transition-all duration-500"
-            style={{ width: `${(problem.currentReviewStage / (stages.length - 1)) * 100}%` }}
-          ></div>
+        <div className="overflow-x-auto pb-2 scrollbar-none">
+          <div className="relative flex items-center justify-between mt-4 mb-2 min-w-[580px] px-2">
+            {/* Progress bar line */}
+            <div className="absolute left-0 right-0 h-1.5 bg-gray-900 rounded-full z-0"></div>
+            <div 
+              className="absolute left-0 h-1.5 bg-indigo-600 rounded-full z-0 transition-all duration-500"
+              style={{ width: `${(problem.currentReviewStage / (stages.length - 1)) * 100}%` }}
+            ></div>
 
-          {/* Steps */}
-          {stages.map((stage, idx) => {
-            const isCompleted = idx < problem.currentReviewStage;
-            const isCurrent = idx === problem.currentReviewStage;
-            
-            return (
-              <div key={idx} className="flex flex-col items-center gap-2 relative z-10 shrink-0">
-                <div className={`
-                  w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all border
-                  ${isCompleted 
-                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/30' 
-                    : ''}
-                  ${isCurrent 
-                    ? 'bg-bg-dark border-indigo-500 text-indigo-400 ring-4 ring-indigo-500/20 scale-110 shadow-lg' 
-                    : ''}
-                  ${!isCompleted && !isCurrent 
-                    ? 'bg-bg-dark border-border-dark text-gray-500' 
-                    : ''}
-                `}>
-                  {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
+            {/* Steps */}
+            {stages.map((stage, idx) => {
+              const isCompleted = idx < problem.currentReviewStage;
+              const isCurrent = idx === problem.currentReviewStage;
+              
+              return (
+                <div key={idx} className="flex flex-col items-center gap-2 relative z-10 shrink-0">
+                  <div className={`
+                    w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all border
+                    ${isCompleted 
+                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/30' 
+                      : ''}
+                    ${isCurrent 
+                      ? 'bg-bg-dark border-indigo-500 text-indigo-400 ring-4 ring-indigo-500/20 scale-110 shadow-lg' 
+                      : ''}
+                    ${!isCompleted && !isCurrent 
+                      ? 'bg-bg-dark border-border-dark text-gray-500' 
+                      : ''}
+                  `}>
+                    {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : idx + 1}
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className={`text-[10px] font-bold ${isCurrent ? 'text-indigo-400' : 'text-gray-400'}`}>
+                      {stage.label}
+                    </span>
+                    <span className="text-[9px] text-gray-500 font-medium">
+                      {stage.interval}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-center">
-                  <span className={`text-[10px] font-bold ${isCurrent ? 'text-indigo-400' : 'text-gray-400'}`}>
-                    {stage.label}
-                  </span>
-                  <span className="text-[9px] text-gray-500 font-medium">
-                    {stage.interval}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 

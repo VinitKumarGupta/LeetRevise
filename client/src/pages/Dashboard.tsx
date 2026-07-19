@@ -327,12 +327,12 @@ export const Dashboard: React.FC = () => {
             ) : (
               <div className="flex flex-col gap-4">
                 {analytics.mostForgottenTopics.map((topicStat: any) => (
-                  <div key={topicStat.topic} className="flex justify-between items-center p-3 rounded-xl bg-gray-900/30 border border-border-dark/30">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-gray-200">{topicStat.topic}</span>
+                  <div key={topicStat.topic} className="flex justify-between items-center gap-3 p-3 rounded-xl bg-gray-900/30 border border-border-dark/30 min-w-0">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-semibold text-gray-200 truncate">{topicStat.topic}</span>
                       <span className="text-xs text-gray-500">{topicStat.forgotCount} resets / {topicStat.totalCount} reviews</span>
                     </div>
-                    <span className="text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
+                    <span className="text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20 shrink-0">
                       {topicStat.forgotRate}% Forget Rate
                     </span>
                   </div>
