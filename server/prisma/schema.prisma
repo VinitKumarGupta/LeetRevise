@@ -1,0 +1,86 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String          @id @default(uuid())
+  name                String
+  email               String          @unique
+  passwordHash        String
+  leetcodeUsername    String?
+  timezone            String          @default("UTC")
+  notificationEnabled Boolean         @default(true)
+  reminderTime        String          @default("09:00")
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  solvedProblems      SolvedProblem[]
+  syncLogs            SyncLog[]
+  notifications       Notification[]
+}
+
+model Problem {
+  id                String          @id @default(uuid())
+  leetcodeProblemId String          @unique
+  title             String
+  titleSlug         String          @unique
+  difficulty        String          // "Easy", "Medium", "Hard"
+  url               String
+  topics            String          // Comma-separated list of topics (e.g. "Arrays,Hash Table")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  solvedProblems    SolvedProblem[]
+}
+
+model SolvedProblem {
+  id                 String          @id @default(uuid())
+  userId             String
+  problemId          String
+  solvedAt           DateTime        @default(now())
+  currentReviewStage Int             @default(0) // Stage index: 0, 1, 2, 3, 4, 5
+  nextReviewAt       DateTime
+  lastReviewedAt     DateTime?
+  reviewCount        Int             @default(0)
+  status             String          @default("active") // "active", "completed", "paused"
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem            Problem         @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  history            ReviewHistory[]
+
+  @@unique([userId, problemId])
+}
+
+model ReviewHistory {
+  id              String        @id @default(uuid())
+  solvedProblemId String
+  reviewedAt      DateTime      @default(now())
+  result          String        // "easy", "effort", "forgot", "skipped"
+  notes           String?       // Markdown text for details, edge cases, complexity
+  solvedProblem   SolvedProblem @relation(fields: [solvedProblemId], references: [id], onDelete: Cascade)
+}
+
+model SyncLog {
+  id                     String   @id @default(uuid())
+  userId                 String
+  syncedAt               DateTime @default(now())
+  newProblemsCount       Int
+  duplicatesSkippedCount Int
+  success                Boolean
+  errorMessage           String?
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Compilation output
+dist/
+.tsbuildinfo
+
+# Local SQLite Database files
+*.db
+*.db-journal
+dev.db
+dev.db-journal
+
+# Secrets & Configs
+.env
