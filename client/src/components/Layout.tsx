@@ -147,7 +147,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Icon className={`w-5 h-5 shrink-0 transition-transform duration-200 ${isActive ? 'text-indigo-400' : 'group-hover:scale-110'}`} />
-                    <span className="whitespace-nowrap">{item.name}</span>
+                    <span className="whitespace-nowrap truncate">{item.name}</span>
                   </div>
                   {item.badge !== undefined && (
                     <span className={`

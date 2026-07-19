@@ -147,7 +147,7 @@ export const SyncAccount: React.FC = () => {
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div>
-        <h1 className="font-display font-extrabold text-3xl tracking-tight text-gray-100 mb-1">
+        <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight text-gray-100 mb-1">
           LeetCode Account Sync
         </h1>
         <p className="text-sm text-gray-400">

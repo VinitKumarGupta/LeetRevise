@@ -101,7 +101,7 @@ export const Settings: React.FC = () => {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h1 className="font-display font-extrabold text-3xl tracking-tight text-gray-100 mb-1">
+        <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight text-gray-100 mb-1">
           Settings & Preferences
         </h1>
         <p className="text-sm text-gray-400">

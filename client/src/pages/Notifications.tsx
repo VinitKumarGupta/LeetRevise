@@ -61,7 +61,7 @@ export const Notifications: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="font-display font-extrabold text-3xl tracking-tight text-gray-100 mb-1">
+          <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight text-gray-100 mb-1">
             Notifications
           </h1>
           <p className="text-sm text-gray-400">
