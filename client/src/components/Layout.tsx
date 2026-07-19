@@ -8,7 +8,7 @@ import {
   Bell, 
   Settings, 
   LogOut, 
-  BookOpen, 
+  Code2, 
   Menu, 
   X,
   AlertTriangle
@@ -82,7 +82,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="md:hidden flex items-center justify-between p-4 bg-card-dark/80 backdrop-blur-md border-b border-border-dark sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <div className="bg-indigo-600 p-1.5 rounded-lg text-white">
-            <BookOpen className="w-5 h-5" />
+            <Code2 className="w-5 h-5" />
           </div>
           <span className="font-display font-bold text-lg bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
             LeetRevise
@@ -113,7 +113,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           {/* Logo */}
           <div className="hidden md:flex items-center gap-3">
             <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-600/30">
-              <BookOpen className="w-6 h-6" />
+              <Code2 className="w-6 h-6" />
             </div>
             <span className="font-display font-extrabold text-xl bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
               LeetRevise

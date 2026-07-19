@@ -5,7 +5,6 @@ import {
   ArrowLeft, 
   ExternalLink, 
   Calendar, 
-  BookOpen, 
   Check, 
   Save, 
   History, 

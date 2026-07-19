@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
-import { BookOpen, KeyRound, Mail, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Code2, KeyRound, Mail, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const { login } = useAuth();
@@ -38,7 +38,7 @@ export const Login: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <div className="bg-indigo-600 p-3 rounded-2xl text-white shadow-xl shadow-indigo-600/30">
-            <BookOpen className="w-8 h-8" />
+            <Code2 className="w-8 h-8" />
           </div>
           <h1 className="font-display font-extrabold text-3xl text-gray-100 tracking-tight text-center">
             Welcome Back
