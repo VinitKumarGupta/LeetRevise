@@ -37,7 +37,7 @@ function sendTokenResponse(user: { id: string; email: string }, res: Response) {
     httpOnly: true,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax' as const,
+    sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
   };
 
   res.cookie('token', token, cookieOptions);
@@ -127,7 +127,7 @@ router.post('/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
   return res.json({ message: 'Successfully logged out' });
 });
