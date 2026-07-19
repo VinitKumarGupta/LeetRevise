@@ -155,7 +155,7 @@ export const Queue: React.FC = () => {
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
-            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500"
+            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500 w-full sm:w-auto flex-1 sm:flex-initial"
           >
             <option value="">All Difficulties</option>
             <option value="Easy">Easy</option>
@@ -167,7 +167,7 @@ export const Queue: React.FC = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500"
+            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500 w-full sm:w-auto flex-1 sm:flex-initial"
           >
             <option value="due_asc">Due Date (Oldest First)</option>
             <option value="due_desc">Due Date (Newest First)</option>

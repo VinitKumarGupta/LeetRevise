@@ -243,7 +243,7 @@ export const ProblemDetail: React.FC = () => {
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Notes Area */}
           <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-indigo-400" />
                 <span>Personal Solution Notes</span>
@@ -251,7 +251,7 @@ export const ProblemDetail: React.FC = () => {
               <button
                 onClick={() => saveNotesMutation.mutate()}
                 disabled={isSavingNotes}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 border border-border-dark hover:bg-gray-800 text-gray-300 disabled:opacity-50 transition-colors"
+                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 border border-border-dark hover:bg-gray-800 text-gray-300 disabled:opacity-50 transition-colors w-full sm:w-auto"
               >
                 <Save className="w-3.5 h-3.5" />
                 {isSavingNotes ? 'Saving...' : saveSuccess ? 'Saved!' : 'Save Notes'}

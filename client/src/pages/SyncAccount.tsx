@@ -196,7 +196,7 @@ export const SyncAccount: React.FC = () => {
               When you click **Sync Now**, the tracker contacts LeetCode's public API to query your latest resolved problems. Only successfully accepted submissions not yet tracked in your revision schedule will be imported.
             </p>
             
-            <div className="flex flex-wrap items-center justify-between gap-4 mt-2 p-4 rounded-xl bg-gray-900/30 border border-border-dark/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 p-4 rounded-xl bg-gray-900/30 border border-border-dark/30">
               <div className="flex flex-col">
                 <span className="text-xs text-gray-400">Connected Profile:</span>
                 <span className="text-sm font-bold text-gray-200">
@@ -206,7 +206,7 @@ export const SyncAccount: React.FC = () => {
               <button
                 onClick={() => syncMutation.mutate()}
                 disabled={syncMutation.isPending || !user?.leetcodeUsername}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white transition-all shadow-md shadow-indigo-600/10 active:scale-98"
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white transition-all shadow-md shadow-indigo-600/10 active:scale-98 w-full sm:w-auto"
               >
                 <RefreshCw className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
                 {syncMutation.isPending ? 'Fetching Submissions...' : 'Sync Now'}
@@ -234,8 +234,14 @@ export const SyncAccount: React.FC = () => {
                     <tr className="border-b border-border-dark/60 text-gray-500 uppercase tracking-wider text-[10px]">
                       <th className="pb-3 font-semibold">Timestamp</th>
                       <th className="pb-3 font-semibold">Status</th>
-                      <th className="pb-3 font-semibold">New Solved</th>
-                      <th className="pb-3 font-semibold">Skipped Duplicates</th>
+                      <th className="pb-3 font-semibold">
+                        <span className="hidden sm:inline">New Solved</span>
+                        <span className="sm:hidden">New</span>
+                      </th>
+                      <th className="pb-3 font-semibold">
+                        <span className="hidden sm:inline">Skipped Duplicates</span>
+                        <span className="sm:hidden">Skipped</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
