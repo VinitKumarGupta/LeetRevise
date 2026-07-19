@@ -105,7 +105,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Sidebar Navigation */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-card-dark/95 border-r border-border-dark/60 p-6 flex flex-col justify-between transition-transform duration-300 transform
+        fixed inset-y-0 left-0 z-40 w-64 md:shrink-0 bg-card-dark/95 border-r border-border-dark/60 p-6 flex flex-col justify-between transition-transform duration-300 transform
         md:translate-x-0 md:static md:h-screen
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
@@ -137,13 +137,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       : 'text-gray-400 hover:bg-gray-800/40 hover:text-gray-200'}
                   `}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-5 h-5 transition-transform duration-200 ${isActive ? 'text-indigo-400' : 'group-hover:scale-110'}`} />
-                    <span>{item.name}</span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Icon className={`w-5 h-5 shrink-0 transition-transform duration-200 ${isActive ? 'text-indigo-400' : 'group-hover:scale-110'}`} />
+                    <span className="whitespace-nowrap truncate">{item.name}</span>
                   </div>
                   {item.badge !== undefined && (
                     <span className={`
-                      text-xs font-bold px-2 py-0.5 rounded-full
+                      text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-2
                       ${item.name === 'Revision Queue' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-indigo-600 text-white'}
                     `}>
                       {item.badge}

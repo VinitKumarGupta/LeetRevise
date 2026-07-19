@@ -63,9 +63,10 @@ router.post('/register', async (req, res) => {
       },
     });
 
-    sendTokenResponse(user, res);
+    const token = sendTokenResponse(user, res);
 
     return res.status(201).json({
+      token,
       user: {
         id: user.id,
         name: user.name,
@@ -100,9 +101,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    sendTokenResponse(user, res);
+    const token = sendTokenResponse(user, res);
 
     return res.json({
+      token,
       user: {
         id: user.id,
         name: user.name,

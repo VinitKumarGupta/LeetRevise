@@ -116,7 +116,7 @@ export const Analytics: React.FC = () => {
       {/* Main charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Weekly Progress */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between">
+        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between min-w-0">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-indigo-400" />
@@ -145,7 +145,7 @@ export const Analytics: React.FC = () => {
         </div>
 
         {/* Difficulty Breakdown */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between">
+        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between min-w-0">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
               <Gauge className="w-5 h-5 text-indigo-400" />

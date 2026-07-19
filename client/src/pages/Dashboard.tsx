@@ -196,7 +196,7 @@ export const Dashboard: React.FC = () => {
       {/* Main Grid: Charts & Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Weekly Chart */}
-        <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border-border-dark/60 flex flex-col justify-between shadow-xl">
+        <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border-border-dark/60 flex flex-col justify-between shadow-xl min-w-0">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-indigo-400" />
@@ -245,7 +245,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Right Column: Difficulty Breakdown */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 flex flex-col justify-between shadow-xl">
+        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 flex flex-col justify-between shadow-xl min-w-0">
           <div>
             <h2 className="font-display font-bold text-lg text-gray-200 mb-6 flex items-center gap-2">
               <span>Difficulty Allocation</span>
