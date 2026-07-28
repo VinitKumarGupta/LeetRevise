@@ -112,23 +112,23 @@ export const Queue: React.FC = () => {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="glass-panel p-5 rounded-2xl border-border-dark/60 shadow-lg flex flex-col md:flex-row gap-4 justify-between items-center">
-        {/* Search */}
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search title, tags..."
-            className="w-full bg-gray-900/60 border border-border-dark/50 rounded-xl py-2.5 pl-11 pr-4 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
-          />
-        </div>
+      <div className="glass-panel p-4 sm:p-5 rounded-2xl border-border-dark/60 shadow-lg flex flex-col gap-4">
+        {/* Top Row: Search & Status Tabs */}
+        <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search title, tags..."
+              className="w-full bg-gray-900/60 border border-border-dark/50 rounded-xl py-2.5 pl-10 pr-4 text-xs sm:text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+            />
+          </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          {/* Status filter */}
-          <div className="flex items-center overflow-x-auto whitespace-nowrap bg-gray-900/40 rounded-xl p-1 border border-border-dark/40 w-full sm:w-auto scrollbar-none">
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap bg-gray-900/60 rounded-xl p-1 border border-border-dark/40 scrollbar-none">
             {[
               { id: 'due', label: 'Due' },
               { id: 'upcoming', label: 'Upcoming' },
@@ -140,9 +140,9 @@ export const Queue: React.FC = () => {
                 key={s.id}
                 onClick={() => setStatus(s.id)}
                 className={`
-                  px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors
+                  px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95
                   ${status === s.id 
-                    ? 'bg-indigo-600 text-white shadow-md' 
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-bold' 
                     : 'text-gray-400 hover:text-gray-200'}
                 `}
               >
@@ -150,12 +150,15 @@ export const Queue: React.FC = () => {
               </button>
             ))}
           </div>
+        </div>
 
+        {/* Bottom Row: Select Dropdowns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border-dark/40">
           {/* Difficulty Dropdown */}
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
-            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500 w-full sm:w-auto flex-1 sm:flex-initial"
+            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500 w-full"
           >
             <option value="">All Difficulties</option>
             <option value="Easy">Easy</option>
@@ -167,7 +170,7 @@ export const Queue: React.FC = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500 w-full sm:w-auto flex-1 sm:flex-initial"
+            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500 w-full"
           >
             <option value="due_asc">Due Date (Oldest First)</option>
             <option value="due_desc">Due Date (Newest First)</option>
@@ -181,17 +184,17 @@ export const Queue: React.FC = () => {
 
       {/* Main Problems List */}
       {isLoading ? (
-        <div className="flex flex-col gap-4 animate-pulse">
+        <div className="flex flex-col gap-3 animate-pulse">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 bg-gray-800/40 rounded-xl"></div>
+            <div key={i} className="h-24 bg-gray-800/40 rounded-2xl"></div>
           ))}
         </div>
       ) : problems.length === 0 ? (
-        <div className="glass-panel p-12 rounded-3xl border-border-dark/40 text-center flex flex-col items-center justify-center gap-4">
+        <div className="glass-panel p-8 sm:p-14 rounded-3xl border-border-dark/40 text-center flex flex-col items-center justify-center gap-4">
           <Calendar className="w-12 h-12 text-gray-600 opacity-60" />
           <div>
             <h3 className="font-display font-semibold text-lg text-gray-300 mb-1">Queue is empty</h3>
-            <p className="text-sm text-gray-500 max-w-sm mx-auto">
+            <p className="text-xs sm:text-sm text-gray-500 max-w-sm mx-auto">
               {status === 'due' 
                 ? "No revisions due right now! Check back later, or review upcoming questions."
                 : "No tracked problems found matching your active filters."}
@@ -200,7 +203,7 @@ export const Queue: React.FC = () => {
           {status === 'due' && (
             <button
               onClick={() => setStatus('')}
-              className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-xl transition-all"
+              className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2.5 rounded-xl transition-all"
             >
               View All Problems
             </button>
@@ -215,29 +218,30 @@ export const Queue: React.FC = () => {
             return (
               <div 
                 key={item.id}
-                className="glass-panel glass-panel-hover p-5 rounded-2xl border-border-dark/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                className="glass-panel glass-panel-hover p-4 sm:p-5 rounded-2xl border-border-dark/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
               >
                 {/* Problem Info */}
-                <div className="flex items-start gap-4 min-w-0 flex-1">
+                <div className="flex items-start gap-3.5 min-w-0 flex-1">
                   <div className={`
-                    w-2.5 h-10 rounded-full shrink-0
+                    w-2 h-10 rounded-full shrink-0 mt-0.5
                     ${item.problem.difficulty === 'Easy' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : ''}
                     ${item.problem.difficulty === 'Medium' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]' : ''}
                     ${item.problem.difficulty === 'Hard' ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]' : ''}
                   `}></div>
-                  <div className="flex flex-col min-w-0 gap-1.5">
+
+                  <div className="flex flex-col min-w-0 gap-1.5 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link 
                         to={`/problem/${item.id}`}
-                        className="font-display font-bold text-gray-100 hover:text-indigo-400 transition-colors truncate"
+                        className="font-display font-bold text-sm sm:text-base text-gray-100 hover:text-indigo-400 transition-colors truncate"
                       >
                         {item.problem.title}
                       </Link>
                       <span className={`
-                        text-[10px] font-bold px-2 py-0.5 rounded
-                        ${item.problem.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400' : ''}
-                        ${item.problem.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400' : ''}
-                        ${item.problem.difficulty === 'Hard' ? 'bg-rose-500/10 text-rose-400' : ''}
+                        text-[10px] font-extrabold px-2 py-0.5 rounded shrink-0
+                        ${item.problem.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : ''}
+                        ${item.problem.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : ''}
+                        ${item.problem.difficulty === 'Hard' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : ''}
                       `}>
                         {item.problem.difficulty}
                       </span>
@@ -247,6 +251,7 @@ export const Queue: React.FC = () => {
                         </span>
                       )}
                     </div>
+
                     {/* Tags */}
                     <div className="flex flex-wrap gap-1">
                       {item.problem.topics.split(',').map((t: string) => (
@@ -262,7 +267,7 @@ export const Queue: React.FC = () => {
                 </div>
 
                 {/* Tracking / SR Meta */}
-                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 shrink-0 border-t sm:border-t-0 border-border-dark/40 pt-4 sm:pt-0">
+                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 shrink-0 border-t sm:border-t-0 border-border-dark/40 pt-3 sm:pt-0">
                   {/* Next Review & Stages */}
                   <div className="text-left sm:text-right">
                     <div className="flex items-center gap-1.5 sm:justify-end text-xs font-semibold">
@@ -282,7 +287,7 @@ export const Queue: React.FC = () => {
                         {getRemainingTime(item.nextReviewAt, item.dueStatus)}
                       </span>
                     </div>
-                    <div className="text-[11px] text-gray-500 mt-0.5">
+                    <div className="text-[10px] sm:text-[11px] text-gray-500 mt-0.5">
                       Stage {item.currentReviewStage + 1} / 6 • Solved: {new Date(item.solvedAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -294,7 +299,7 @@ export const Queue: React.FC = () => {
                       <button
                         onClick={() => statusMutation.mutate({ id: item.id, newStatus: 'active' })}
                         title="Resume review schedule"
-                        className="p-2 rounded-xl bg-gray-900 text-gray-400 hover:text-indigo-400 hover:bg-gray-800 transition-colors border border-border-dark"
+                        className="p-2 rounded-xl bg-gray-900 text-gray-400 hover:text-indigo-400 hover:bg-gray-800 transition-colors border border-border-dark/80 active:scale-95"
                       >
                         <Play className="w-3.5 h-3.5" />
                       </button>
@@ -302,7 +307,7 @@ export const Queue: React.FC = () => {
                       <button
                         onClick={() => statusMutation.mutate({ id: item.id, newStatus: 'paused' })}
                         title="Pause review schedule"
-                        className="p-2 rounded-xl bg-gray-900 text-gray-400 hover:text-amber-500 hover:bg-gray-800 transition-colors border border-border-dark"
+                        className="p-2 rounded-xl bg-gray-900 text-gray-400 hover:text-amber-500 hover:bg-gray-800 transition-colors border border-border-dark/80 active:scale-95"
                       >
                         <Pause className="w-3.5 h-3.5" />
                       </button>
@@ -312,7 +317,7 @@ export const Queue: React.FC = () => {
                     <button
                       onClick={() => handleDelete(item.id, item.problem.title)}
                       title="Remove tracking"
-                      className="p-2 rounded-xl bg-gray-900 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors border border-border-dark"
+                      className="p-2 rounded-xl bg-gray-900 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors border border-border-dark/80 active:scale-95"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -320,7 +325,7 @@ export const Queue: React.FC = () => {
                     {/* Open Problem Detail */}
                     <Link 
                       to={`/problem/${item.id}`}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white transition-all text-xs font-semibold"
+                      className="flex items-center gap-1 px-3 py-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white transition-all text-xs font-semibold active:scale-95 border border-indigo-500/20"
                     >
                       <span>Revise</span>
                       <ChevronRight className="w-3.5 h-3.5" />

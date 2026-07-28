@@ -61,7 +61,35 @@ router.post('/:id/read', authenticateToken, async (req: AuthenticatedRequest, re
   }
 });
 
-// DELETE NOTIFICATION
+// DELETE ALL READ NOTIFICATIONS
+router.delete('/read-all', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const result = await db.notification.deleteMany({
+      where: { userId, isRead: true },
+    });
+    return res.json({ message: `Cleared ${result.count} read notification(s)` });
+  } catch (error) {
+    console.error('Clear read notifications error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// DELETE ALL NOTIFICATIONS
+router.delete('/clear-all', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const result = await db.notification.deleteMany({
+      where: { userId },
+    });
+    return res.json({ message: `Cleared all ${result.count} notification(s)` });
+  } catch (error) {
+    console.error('Clear all notifications error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// DELETE NOTIFICATION BY ID
 router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
@@ -93,7 +121,7 @@ router.post('/check-due', authenticateToken, async (req: AuthenticatedRequest, r
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Find all active solved problems that are due but don't have notifications generated today yet
+    // Find all active solved problems that are due
     const dueProblems = await db.solvedProblem.findMany({
       where: {
         userId,
@@ -109,18 +137,21 @@ router.post('/check-due', authenticateToken, async (req: AuthenticatedRequest, r
       return res.json({ dueCount: 0, message: 'No pending revisions.' });
     }
 
-    // Check if we already sent a summary notification today
-    const todayNotification = await db.notification.findFirst({
+    // Check if an unread summary notification already exists (regardless of exact date) or sent today
+    const existingDigest = await db.notification.findFirst({
       where: {
         userId,
         title: 'Daily Revision Digest',
-        createdAt: { gte: startOfToday },
+        OR: [
+          { isRead: false },
+          { createdAt: { gte: startOfToday } }
+        ]
       },
     });
 
     let newAlertCreated = false;
 
-    if (!todayNotification && dueProblems.length > 0) {
+    if (!existingDigest && dueProblems.length > 0) {
       const overdueProblems = dueProblems.filter(p => new Date(p.nextReviewAt) < startOfToday);
       
       let bodyText = `You have ${dueProblems.length} LeetCode problem(s) due for revision today.`;
@@ -139,7 +170,7 @@ router.post('/check-due', authenticateToken, async (req: AuthenticatedRequest, r
       newAlertCreated = true;
     }
 
-    // Also, if there is a specific critical problem overdue by more than 3 days, trigger a specific warning
+    // Critical warnings check: avoid creating duplicate unread warnings for the same problem
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
@@ -150,7 +181,10 @@ router.post('/check-due', authenticateToken, async (req: AuthenticatedRequest, r
           userId,
           title: 'Critical Revision Overdue',
           body: { contains: item.problem.title },
-          createdAt: { gte: startOfToday },
+          OR: [
+            { isRead: false },
+            { createdAt: { gte: startOfToday } }
+          ]
         },
       });
 

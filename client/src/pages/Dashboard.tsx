@@ -94,19 +94,19 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="flex flex-col gap-8">
       {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight text-gray-100 mb-1">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-gray-100 mb-1">
             Dashboard
           </h1>
-          <p className="text-sm text-gray-400">
+          <p className="text-xs sm:text-sm text-gray-400">
             Monitor revision streaks, completion rates, and queue stats
           </p>
         </div>
         <div className="flex items-center gap-3">
           {lastSync && (
             <div className="text-right hidden sm:block">
-              <p className="text-xs text-gray-500">Last Synced Profile</p>
+              <p className="text-[11px] text-gray-500">Last Synced Profile</p>
               <p className={`text-xs font-medium ${lastSync.success ? 'text-gray-300' : 'text-rose-400'}`}>
                 {lastSync.success 
                   ? `${new Date(lastSync.syncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${lastSync.newProblemsCount} new)` 
@@ -117,78 +117,78 @@ export const Dashboard: React.FC = () => {
           <button
             onClick={() => syncMutation.mutate()}
             disabled={syncMutation.isPending}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white transition-all shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-95"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white transition-all shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-95 w-full sm:w-auto"
           >
             <RefreshCw className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-            {syncMutation.isPending ? 'Syncing...' : 'Sync Now'}
+            <span>{syncMutation.isPending ? 'Syncing...' : 'Sync Now'}</span>
           </button>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {/* Streak */}
-        <div className="glass-panel p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group">
+        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group gap-3">
           <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/10 transition-colors duration-300"></div>
-          <div className="flex flex-col gap-1.5 min-w-0">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Revision Streak</span>
-            <span className="text-2xl font-display font-extrabold text-gray-100 flex items-center gap-2">
-              {summary.streak} <span className="text-sm font-sans font-normal text-gray-500">days</span>
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Streak</span>
+            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100 flex items-center gap-1.5">
+              {summary.streak} <span className="text-xs font-sans font-normal text-gray-500">days</span>
             </span>
-            <span className="text-xs text-gray-500 truncate">Max streak: {summary.maxStreak} days</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Max: {summary.maxStreak} d</span>
           </div>
-          <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-3.5 rounded-xl shadow-inner shadow-amber-500/5">
-            <Flame className="w-6 h-6 animate-pulse" />
+          <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-2.5 sm:p-3.5 rounded-xl shadow-inner shadow-amber-500/5 self-end sm:self-center">
+            <Flame className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
           </div>
         </div>
 
         {/* Due Today */}
-        <Link to="/queue?status=due" className="glass-panel glass-panel-hover p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Due Today</span>
-            <span className="text-2xl font-display font-extrabold text-gray-100">
-              {summary.dueCount} <span className="text-sm font-sans font-normal text-gray-500">problems</span>
+        <Link to="/queue?status=due" className="glass-panel glass-panel-hover p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-border-dark/60 shadow-lg gap-3">
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Due Today</span>
+            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
+              {summary.dueCount} <span className="text-xs font-sans font-normal text-gray-500">due</span>
             </span>
-            <span className="text-xs text-gray-500 flex items-center gap-1">
+            <span className="text-[10px] sm:text-xs text-gray-500 truncate">
               {summary.overdueCount > 0 ? (
                 <span className="text-rose-400 font-semibold">{summary.overdueCount} overdue</span>
               ) : (
-                'Clean backlog!'
+                'Clean backlog'
               )}
             </span>
           </div>
-          <div className="bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 p-3.5 rounded-xl">
-            <Clock className="w-6 h-6" />
+          <div className="bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 p-2.5 sm:p-3.5 rounded-xl self-end sm:self-center">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </Link>
 
         {/* Completion Rate */}
-        <div className="glass-panel p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group">
+        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group gap-3">
           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-emerald-500/10 transition-colors duration-300"></div>
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Retention Rate</span>
-            <span className="text-2xl font-display font-extrabold text-gray-100">
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Retention</span>
+            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
               {summary.completionRate}%
             </span>
-            <span className="text-xs text-gray-500">Successful recall rate</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Recall rate</span>
           </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 p-3.5 rounded-xl">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 p-2.5 sm:p-3.5 rounded-xl self-end sm:self-center">
+            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         {/* Total Solved */}
-        <div className="glass-panel p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group">
+        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group gap-3">
           <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-purple-500/10 transition-colors duration-300"></div>
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Tracked</span>
-            <span className="text-2xl font-display font-extrabold text-gray-100">
-              {summary.totalSolved} <span className="text-sm font-sans font-normal text-gray-500">solved</span>
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Tracked</span>
+            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
+              {summary.totalSolved} <span className="text-xs font-sans font-normal text-gray-500">items</span>
             </span>
-            <span className="text-xs text-gray-500">Active spaced repetition</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Spaced schedule</span>
           </div>
-          <div className="bg-purple-500/10 border border-purple-500/20 text-purple-400 p-3.5 rounded-xl">
-            <Trophy className="w-6 h-6" />
+          <div className="bg-purple-500/10 border border-purple-500/20 text-purple-400 p-2.5 sm:p-3.5 rounded-xl self-end sm:self-center">
+            <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>

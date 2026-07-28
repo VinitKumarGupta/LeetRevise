@@ -129,22 +129,22 @@ export const ProblemDetail: React.FC = () => {
       </div>
 
       {/* Problem Header Card */}
-      <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+      <div className="glass-panel p-4 sm:p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative overflow-hidden">
         {/* Decorative background glow */}
         <div className={`
-          absolute top-0 left-0 w-2.5 h-full
+          absolute top-0 left-0 w-2 h-full
           ${pData.difficulty === 'Easy' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : ''}
           ${pData.difficulty === 'Medium' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : ''}
           ${pData.difficulty === 'Hard' ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : ''}
         `}></div>
 
-        <div className="flex flex-col gap-3 pl-2 min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col gap-2.5 pl-2 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-gray-500 font-mono">
               ID: {pData.leetcodeProblemId}
             </span>
             <span className={`
-              text-xs font-bold px-2 py-0.5 rounded
+              text-xs font-extrabold px-2 py-0.5 rounded
               ${pData.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : ''}
               ${pData.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : ''}
               ${pData.difficulty === 'Hard' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : ''}
@@ -158,11 +158,11 @@ export const ProblemDetail: React.FC = () => {
             )}
           </div>
           
-          <h1 className="font-display font-extrabold text-2xl md:text-3xl text-gray-100 tracking-tight">
+          <h1 className="font-display font-extrabold text-xl sm:text-2xl md:text-3xl text-gray-100 tracking-tight">
             {pData.title}
           </h1>
 
-          <div className="flex flex-wrap gap-1.5 mt-1">
+          <div className="flex flex-wrap gap-1.5 mt-0.5">
             {pData.topics.split(',').map((t: string) => (
               <span 
                 key={t} 
@@ -174,15 +174,15 @@ export const ProblemDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
+        <div className="flex items-center gap-3 shrink-0 self-stretch sm:self-auto">
           <a
             href={pData.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-gray-900 border border-border-dark hover:bg-gray-800 text-gray-200 transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-gray-900 border border-border-dark hover:bg-gray-800 text-gray-200 transition-all shadow-sm w-full sm:w-auto active:scale-95"
           >
             <span>Open LeetCode</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
           </a>
         </div>
       </div>

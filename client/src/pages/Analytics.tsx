@@ -63,52 +63,52 @@ export const Analytics: React.FC = () => {
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div>
-        <h1 className="font-display font-extrabold text-3xl tracking-tight text-gray-100 mb-1">
+        <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-gray-100 mb-1">
           Analytics & Progress
         </h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-xs sm:text-sm text-gray-400">
           Visualize your revision retention rates, strengths, and pain points over time
         </p>
       </div>
 
       {/* Grid Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="glass-panel p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Revision Streak</span>
-            <span className="text-2xl font-display font-extrabold text-gray-100 flex items-center gap-2">
-              {summary.streak} <span className="text-xs font-sans font-normal text-gray-500">days active</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Revision Streak</span>
+            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100 flex items-center gap-1.5">
+              {summary.streak} <span className="text-xs font-sans font-normal text-gray-500">days</span>
             </span>
-            <span className="text-[11px] text-gray-500">Max revision streak: {summary.maxStreak} days</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Max: {summary.maxStreak} days</span>
           </div>
-          <div className="bg-amber-500/10 text-amber-500 p-3.5 rounded-xl border border-amber-500/20">
-            <Flame className="w-6 h-6 animate-pulse" />
+          <div className="bg-amber-500/10 text-amber-500 p-3 sm:p-3.5 rounded-xl border border-amber-500/20 shrink-0">
+            <Flame className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
           </div>
         </div>
 
-        <div className="glass-panel p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Overall Retention</span>
-            <span className="text-2xl font-display font-extrabold text-gray-100">
+        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Overall Retention</span>
+            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
               {summary.completionRate}%
             </span>
-            <span className="text-[11px] text-gray-500">Reviews completed without forgetting</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Recall success</span>
           </div>
-          <div className="bg-emerald-500/10 text-emerald-400 p-3.5 rounded-xl border border-emerald-500/20">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="bg-emerald-500/10 text-emerald-400 p-3 sm:p-3.5 rounded-xl border border-emerald-500/20 shrink-0">
+            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className="glass-panel p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider font-mono">Mastered Count</span>
-            <span className="text-2xl font-display font-extrabold text-gray-100">
-              {summary.completedCount} <span className="text-xs font-sans font-normal text-gray-500">problems</span>
+        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
+          <div className="flex flex-col gap-1 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider font-mono">Mastered Count</span>
+            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
+              {summary.completedCount} <span className="text-xs font-sans font-normal text-gray-500">solved</span>
             </span>
-            <span className="text-[11px] text-gray-500">Finished all spaced repetition stages</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 truncate">All 6 stages done</span>
           </div>
-          <div className="bg-purple-500/10 text-purple-400 p-3.5 rounded-xl border border-purple-500/20">
-            <Trophy className="w-6 h-6" />
+          <div className="bg-purple-500/10 text-purple-400 p-3 sm:p-3.5 rounded-xl border border-purple-500/20 shrink-0">
+            <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>

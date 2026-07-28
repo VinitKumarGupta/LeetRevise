@@ -147,10 +147,10 @@ export const SyncAccount: React.FC = () => {
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div>
-        <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight text-gray-100 mb-1">
+        <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-gray-100 mb-1">
           LeetCode Account Sync
         </h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-xs sm:text-sm text-gray-400">
           Connect your account to pull latest solved problems, or add revisions manually on failure
         </p>
       </div>
@@ -159,27 +159,27 @@ export const SyncAccount: React.FC = () => {
         {/* Left Column: Connections & Sync */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Account connection */}
-          <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
+          <div className="glass-panel p-4 sm:p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
             <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-indigo-400" />
               <span>Link Account</span>
             </h2>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               Enter your public LeetCode username. Your submissions list must be public for the sync to fetch them.
             </p>
 
-            <form onSubmit={handleLinkUsername} className="flex flex-col sm:flex-row gap-3 mt-2">
+            <form onSubmit={handleLinkUsername} className="flex flex-col sm:flex-row gap-3 mt-1">
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="LeetCode Username"
-                className="flex-1 bg-gray-900/60 border border-border-dark/60 rounded-xl px-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                className="flex-1 bg-gray-900/60 border border-border-dark/60 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
               />
               <button
                 type="submit"
                 disabled={isUpdatingUser}
-                className="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl text-xs transition-colors shrink-0 disabled:opacity-50"
+                className="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl text-xs transition-all shrink-0 disabled:opacity-50 active:scale-95 shadow-md shadow-indigo-600/10"
               >
                 {isUpdatingUser ? 'Saving...' : 'Connect'}
               </button>
@@ -187,35 +187,35 @@ export const SyncAccount: React.FC = () => {
           </div>
 
           {/* Sync Trigger Card */}
-          <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
+          <div className="glass-panel p-4 sm:p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
             <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-indigo-400" />
               <span>Synchronize Submissions</span>
             </h2>
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <p className="text-xs text-gray-400 leading-relaxed">
               When you click **Sync Now**, the tracker contacts LeetCode's public API to query your latest resolved problems. Only successfully accepted submissions not yet tracked in your revision schedule will be imported.
             </p>
             
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 p-4 rounded-xl bg-gray-900/30 border border-border-dark/30">
-              <div className="flex flex-col">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-1 p-4 rounded-xl bg-gray-900/30 border border-border-dark/30">
+              <div className="flex flex-col min-w-0">
                 <span className="text-xs text-gray-400">Connected Profile:</span>
-                <span className="text-sm font-bold text-gray-200">
+                <span className="text-sm font-bold text-gray-200 truncate">
                   {user?.leetcodeUsername ? `@${user.leetcodeUsername}` : 'Not connected'}
                 </span>
               </div>
               <button
                 onClick={() => syncMutation.mutate()}
                 disabled={syncMutation.isPending || !user?.leetcodeUsername}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white transition-all shadow-md shadow-indigo-600/10 active:scale-98 w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white transition-all shadow-md shadow-indigo-600/10 active:scale-95 w-full sm:w-auto shrink-0"
               >
                 <RefreshCw className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-                {syncMutation.isPending ? 'Fetching Submissions...' : 'Sync Now'}
+                <span>{syncMutation.isPending ? 'Fetching Submissions...' : 'Sync Now'}</span>
               </button>
             </div>
           </div>
 
           {/* Sync History Logs */}
-          <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
+          <div className="glass-panel p-4 sm:p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
             <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
               <History className="w-5 h-5 text-gray-400" />
               <span>Sync Log History</span>
@@ -228,7 +228,7 @@ export const SyncAccount: React.FC = () => {
                 No sync logs recorded yet.
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-none">
                 <table className="w-full text-xs text-left">
                   <thead>
                     <tr className="border-b border-border-dark/60 text-gray-500 uppercase tracking-wider text-[10px]">
