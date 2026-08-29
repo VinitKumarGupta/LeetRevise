@@ -7,7 +7,6 @@ export interface User {
   email: string;
   leetcodeUsername: string | null;
   timezone: string;
-  notificationEnabled: boolean;
   reminderTime: string;
   createdAt?: string;
 }

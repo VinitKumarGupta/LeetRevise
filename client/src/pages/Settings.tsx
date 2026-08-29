@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext.js';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Settings as SettingsIcon, 
-  Bell, 
   Globe, 
   User, 
   Clock, 
@@ -21,7 +20,6 @@ export const Settings: React.FC = () => {
   const [name, setName] = useState(user?.name || '');
   const [leetcodeUsername, setLeetcodeUsername] = useState(user?.leetcodeUsername || '');
   const [timezone, setTimezone] = useState(user?.timezone || 'UTC');
-  const [notificationEnabled, setNotificationEnabled] = useState(user?.notificationEnabled ?? true);
   const [reminderTime, setReminderTime] = useState(user?.reminderTime || '09:00');
   
   const [successMsg, setSuccessMsg] = useState(false);
@@ -73,28 +71,8 @@ export const Settings: React.FC = () => {
       name: name.trim(),
       leetcodeUsername: leetcodeUsername.trim() || null,
       timezone,
-      notificationEnabled,
       reminderTime,
     });
-  };
-
-  // Browser push notification permissions tester
-  const requestBrowserPermission = async () => {
-    if (!('Notification' in window)) {
-      alert('This browser does not support desktop notifications.');
-      return;
-    }
-    
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        alert('Browser notification permission GRANTED!');
-      } else {
-        alert('Permission was denied or ignored.');
-      }
-    } catch (err) {
-      console.error('Error requesting notification permissions:', err);
-    }
   };
 
   return (
@@ -105,7 +83,7 @@ export const Settings: React.FC = () => {
           Settings & Preferences
         </h1>
         <p className="text-sm text-gray-400">
-          Manage your account profile, spacing repetitions scheduler timezone, and alert notification channels
+          Manage your account profile, spacing repetitions scheduler, and timezone preferences.
         </p>
       </div>
 
@@ -203,45 +181,6 @@ export const Settings: React.FC = () => {
                   />
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Notifications Channels */}
-          <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-            <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2 border-b border-border-dark/60 pb-3">
-              <Bell className="w-5 h-5 text-indigo-400" />
-              <span>Notifications Preferences</span>
-            </h2>
-
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-gray-900/30 border border-border-dark/30">
-              <div className="flex flex-col min-w-0 pr-4">
-                <span className="text-xs font-bold text-gray-200 mb-0.5">Enable In-App Digest alerts</span>
-                <span className="text-[11px] text-gray-500 leading-normal">
-                  Send a compiled digest notification when revisions become due.
-                </span>
-              </div>
-              <input
-                type="checkbox"
-                checked={notificationEnabled}
-                onChange={(e) => setNotificationEnabled(e.target.checked)}
-                className="w-4.5 h-4.5 rounded border-border-dark/60 bg-gray-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-bg-dark"
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-gray-900/30 border border-border-dark/30">
-              <div className="flex flex-col min-w-0 pr-4">
-                <span className="text-xs font-bold text-gray-200 mb-0.5">Browser Push Notification permissions</span>
-                <span className="text-[11px] text-gray-500 leading-normal">
-                  Grant permission to receive system tray notifications from LeetRevise.
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={requestBrowserPermission}
-                className="px-3.5 py-2 bg-gray-900 hover:bg-gray-800 text-gray-300 font-semibold rounded-xl text-[11px] transition-colors border border-border-dark shrink-0"
-              >
-                Request Permission
-              </button>
             </div>
           </div>
 

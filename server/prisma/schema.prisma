@@ -1,7 +1,6 @@
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -9,19 +8,17 @@ generator client {
 }
 
 model User {
-  id                  String          @id @default(uuid())
-  name                String
-  email               String          @unique
-  passwordHash        String
-  leetcodeUsername    String?
-  timezone            String          @default("UTC")
-  notificationEnabled Boolean         @default(true)
-  reminderTime        String          @default("09:00")
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  solvedProblems      SolvedProblem[]
-  syncLogs            SyncLog[]
-  notifications       Notification[]
+  id               String          @id @default(uuid())
+  name             String
+  email            String          @unique
+  passwordHash     String
+  leetcodeUsername String?
+  timezone         String          @default("UTC")
+  reminderTime     String          @default("09:00")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  solvedProblems   SolvedProblem[]
+  syncLogs         SyncLog[]
 }
 
 model Problem {
@@ -76,12 +73,3 @@ model SyncLog {
   user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  title     String
-  body      String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}

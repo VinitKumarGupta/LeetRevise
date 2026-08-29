@@ -23,7 +23,6 @@ const profileUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   leetcodeUsername: z.string().nullable().optional(),
   timezone: z.string().optional(),
-  notificationEnabled: z.boolean().optional(),
   reminderTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format').optional(),
 });
 
@@ -73,7 +72,6 @@ router.post('/register', async (req, res) => {
         email: user.email,
         leetcodeUsername: user.leetcodeUsername,
         timezone: user.timezone,
-        notificationEnabled: user.notificationEnabled,
         reminderTime: user.reminderTime,
       },
     });
@@ -111,7 +109,6 @@ router.post('/login', async (req, res) => {
         email: user.email,
         leetcodeUsername: user.leetcodeUsername,
         timezone: user.timezone,
-        notificationEnabled: user.notificationEnabled,
         reminderTime: user.reminderTime,
       },
     });
@@ -145,7 +142,6 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
         email: true,
         leetcodeUsername: true,
         timezone: true,
-        notificationEnabled: true,
         reminderTime: true,
         createdAt: true,
       },
@@ -176,7 +172,6 @@ router.patch('/profile', authenticateToken, async (req: AuthenticatedRequest, re
         email: true,
         leetcodeUsername: true,
         timezone: true,
-        notificationEnabled: true,
         reminderTime: true,
       },
     });

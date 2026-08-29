@@ -218,15 +218,6 @@ router.post('/:id/review', authenticateToken, async (req: AuthenticatedRequest, 
       },
     });
 
-    // Create in-app notification when they complete a review
-    await db.notification.create({
-      data: {
-        userId,
-        title: 'Review Logged',
-        body: `Log registered for "${result}" review. Next scheduled review: ${next.nextReviewAt.toLocaleDateString()}.`,
-      },
-    });
-
     return res.json({
       message: 'Review logged successfully',
       solvedProblem: updated,
