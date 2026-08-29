@@ -176,8 +176,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </nav>
                 </div>
 
-                {/* User Card & Logout */}
                 <div className="flex flex-col gap-4 border-t border-border-dark/60 pt-6 mt-6">
+                    <div className="mb-2 rounded-xl border border-border-dark/40 bg-gray-900/20 px-3 py-3">
+                        <p className="text-[11px] leading-relaxed italic text-gray-500/80 tracking-wide">
+                            “Mastery isn’t grinding 10 new problems a day; it’s
+                            grinding 3 new problems and revising 3 old ones on
+                            time.”
+                        </p>
+                    </div>
+
+                    {/* User Card & Logout */}
                     <div className="flex items-center gap-3 p-2 rounded-xl bg-gray-900/40 border border-border-dark/40">
                         <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-display font-bold text-white shadow-md text-sm shrink-0">
                             {user?.name.charAt(0).toUpperCase()}
