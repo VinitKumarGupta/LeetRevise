@@ -3,13 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
     Search,
-    Filter,
     Calendar,
-    Clock,
-    Check,
-    X,
+    ChevronDown,
     ChevronRight,
-    AlertCircle,
     Play,
     Pause,
     Trash2,
@@ -173,7 +169,7 @@ export const Queue: React.FC = () => {
                                 key={s.id}
                                 onClick={() => setStatus(s.id)}
                                 className={`
-                  px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95
+                  px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all active:scale-95
                   ${
                       status === s.id
                           ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-bold"
@@ -190,40 +186,48 @@ export const Queue: React.FC = () => {
                 {/* Bottom Row: Select Dropdowns */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border-dark/40">
                     {/* Difficulty Dropdown */}
-                    <select
-                        value={difficulty}
-                        onChange={(e) => setDifficulty(e.target.value)}
-                        className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500 w-full"
-                    >
-                        <option value="">All Difficulties</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
+                    <div className="relative">
+                        <select
+                            value={difficulty}
+                            onChange={(e) => setDifficulty(e.target.value)}
+                            className="appearance-none w-full bg-gray-900/70 border border-border-dark/70 rounded-xl px-3 py-2.5 pr-9 text-[11px] sm:text-xs text-gray-200 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 shadow-inner shadow-black/20"
+                        >
+                            <option value="">All Difficulties</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
 
                     {/* Sort Dropdown */}
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-indigo-500 w-full"
-                    >
-                        <option value="due_asc">Due Date (Oldest First)</option>
-                        <option value="due_desc">
-                            Due Date (Newest First)
-                        </option>
-                        <option value="date_desc">
-                            Solved Date (Newest First)
-                        </option>
-                        <option value="date_asc">
-                            Solved Date (Oldest First)
-                        </option>
-                        <option value="diff_desc">
-                            Difficulty (Hard First)
-                        </option>
-                        <option value="diff_asc">
-                            Difficulty (Easy First)
-                        </option>
-                    </select>
+                    <div className="relative">
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="appearance-none w-full bg-gray-900/70 border border-border-dark/70 rounded-xl px-3 py-2.5 pr-9 text-[11px] sm:text-xs text-gray-200 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 shadow-inner shadow-black/20"
+                        >
+                            <option value="due_asc">
+                                Due Date (Oldest First)
+                            </option>
+                            <option value="due_desc">
+                                Due Date (Newest First)
+                            </option>
+                            <option value="date_desc">
+                                Solved Date (Newest First)
+                            </option>
+                            <option value="date_asc">
+                                Solved Date (Oldest First)
+                            </option>
+                            <option value="diff_desc">
+                                Difficulty (Hard First)
+                            </option>
+                            <option value="diff_asc">
+                                Difficulty (Easy First)
+                            </option>
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
                 </div>
             </div>
 
@@ -268,7 +272,11 @@ export const Queue: React.FC = () => {
                         return (
                             <div
                                 key={item.id}
-                                className="glass-panel glass-panel-hover p-4 sm:p-5 rounded-2xl border-border-dark/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                                className={`glass-panel glass-panel-hover p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 group transition-all ${
+                                    item.isStarred
+                                        ? "border border-amber-400/45 bg-gradient-to-r from-amber-500/[0.06] via-amber-500/[0.02] to-transparent shadow-[0_0_0_1px_rgba(251,191,36,0.12),0_10px_25px_rgba(251,191,36,0.04)]"
+                                        : "border border-border-dark/50"
+                                }`}
                             >
                                 {/* Problem Info */}
                                 <div className="flex items-start gap-3.5 min-w-0 flex-1">
@@ -284,7 +292,9 @@ export const Queue: React.FC = () => {
                                     <div className="flex flex-col min-w-0 gap-1.5 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
                                             {item.isStarred && (
-                                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                                                <span className="inline-flex items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/25 p-1 shadow-[0_0_10px_rgba(251,191,36,0.15)]">
+                                                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                                                </span>
                                             )}
                                             <Link
                                                 to={`/problem/${item.id}`}
@@ -378,9 +388,9 @@ export const Queue: React.FC = () => {
                                                     ? "Remove star"
                                                     : "Mark as starred"
                                             }
-                                            className={`p-2 rounded-xl border transition-colors active:scale-95 ${
+                                            className={`p-2 rounded-xl border transition-all active:scale-95 ${
                                                 item.isStarred
-                                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/40 hover:bg-amber-500/20"
+                                                    ? "bg-amber-500/12 text-amber-300 border-amber-400/50 shadow-[0_0_0_1px_rgba(251,191,36,0.15),0_0_18px_rgba(251,191,36,0.15)] hover:bg-amber-500/18"
                                                     : "bg-gray-900 text-gray-500 border-border-dark/80 hover:text-amber-400 hover:bg-gray-800"
                                             }`}
                                         >
