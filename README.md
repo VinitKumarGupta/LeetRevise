@@ -73,29 +73,25 @@ Upon testing yourself, record one of these results to automatically compute the 
 
 The dashboard tracks consistency streaks, completion rates, and active queue counts.
 
-- **Desktop View:**
-  ![Dashboard Desktop View](screenshots/dashboard_desktop.png)
+![Dashboard Desktop View](screenshots/dashboard_desktop.png)
 
 ### Revision Queue
 
 Priority-sorted queue displaying problems due or overdue.
 
-- **Desktop View:**
-  ![Queue Desktop View](screenshots/queue_desktop.png)
+![Queue Desktop View](screenshots/queue_desktop.png)
 
 ### LeetCode Sync Account
 
 Link your public profile or import solved problem slugs manually.
 
-- **Desktop View:**
-  ![Sync Desktop View](screenshots/sync_desktop.png)
+![Sync Desktop View](screenshots/sync_desktop.png)
 
 ### Problem Details & solution logging
 
 Visual milestone stages progress stepper and Solution Notes editor.
 
-- **Desktop View:**
-  ![Problem Detail Desktop View](screenshots/problem_detail_desktop.png)
+![Problem Detail Desktop View](screenshots/problem_detail_desktop.png)
 
 ---
 
