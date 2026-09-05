@@ -8,6 +8,7 @@ import {
     Settings,
     LogOut,
     Code2,
+    BookOpen,
     Menu,
     X,
     AlertTriangle,
@@ -58,6 +59,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         },
         { name: "Sync LeetCode", path: "/sync", icon: RefreshCw },
         { name: "Analytics", path: "/analytics", icon: BarChart3 },
+        {
+            name: "NeetCode 250",
+            path: "https://neetcode.io/practice/practice/neetcode250",
+            icon: BookOpen,
+            external: true,
+        },
         { name: "Settings", path: "/settings", icon: Settings },
     ];
 
@@ -138,20 +145,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         {navItems.map((item) => {
                             const Icon = item.icon;
                             const isActive = location.pathname === item.path;
-                            return (
-                                <Link
-                                    key={item.path}
-                                    to={item.path}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={`
-                    flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group active:scale-98
-                    ${
-                        isActive
-                            ? "bg-indigo-600/20 text-indigo-300 border-l-4 border-indigo-500 font-semibold shadow-sm"
-                            : "text-gray-400 hover:bg-gray-800/50 hover:text-gray-200"
-                    }
-                  `}
-                                >
+                            const linkContent = (
+                                <>
                                     <div className="flex items-center gap-3 min-w-0">
                                         <Icon
                                             className={`w-5 h-5 shrink-0 transition-transform duration-200 ${isActive ? "text-indigo-400" : "group-hover:scale-110"}`}
@@ -170,6 +165,35 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                             {item.badge}
                                         </span>
                                     )}
+                                </>
+                            );
+                            const className = `
+                    flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group active:scale-98
+                    ${
+                        isActive
+                            ? "bg-indigo-600/20 text-indigo-300 border-l-4 border-indigo-500 font-semibold shadow-sm"
+                            : "text-gray-400 hover:bg-gray-800/50 hover:text-gray-200"
+                    }
+                                    `;
+                            return item.external ? (
+                                <a
+                                    key={item.path}
+                                    href={item.path}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className={className}
+                                >
+                                    {linkContent}
+                                </a>
+                            ) : (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className={className}
+                                >
+                                    {linkContent}
                                 </Link>
                             );
                         })}
