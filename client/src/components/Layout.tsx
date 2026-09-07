@@ -9,6 +9,7 @@ import {
     LogOut,
     Code2,
     BookOpen,
+    Sparkles,
     Menu,
     X,
     AlertTriangle,
@@ -20,12 +21,41 @@ interface LayoutProps {
     children: React.ReactNode;
 }
 
+const dailyMessages = [
+    "Look who it is! Your dedication is seriously impressive. Let's crush today's review!",
+    "You're back! Every single day you show up is a day you get closer to your goals. Let's do this!",
+    "Another day, another layer of knowledge. You are building an incredible habit. Welcome back!",
+    "Your consistency is your superpower. Ready to keep that amazing momentum going today?",
+    "Streak champion! You're making this look easy. Let's ace today's revision!",
+    "Consistency pays off. Your future self is definitely thanking you for showing up today.",
+    "Back at it again! Your brain is getting stronger with every single visit. Let's dive in.",
+    "You are on fire! Coming here daily takes real discipline, and you're nailing it.",
+    "Welcome back. Progress isn't about perfection; it's about showing up just like you did today.",
+    "Glad to see you again! Take it one question at a time. You've got this.",
+    "Small daily steps lead to massive results. Thank you for making us a part of your daily routine!",
+    "Keep growing, day by day. You're doing amazing work just by being here.",
+];
+
+const getLocalDateKey = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+};
+
+const getDailyMessageIndex = (dateKey: string) => {
+    const dateNumber = Number(dateKey.replace(/-/g, ""));
+    return dateNumber % dailyMessages.length;
+};
+
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user, logout } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [dueCount, setDueCount] = useState(0);
+    const [dailyMessage, setDailyMessage] = useState<string | null>(null);
 
     const fetchCounts = async () => {
         try {
@@ -43,6 +73,23 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             return () => clearInterval(interval);
         }
     }, [user, location.pathname]);
+
+    useEffect(() => {
+        if (!user) {
+            setDailyMessage(null);
+            return;
+        }
+
+        const dateKey = getLocalDateKey();
+        const storageKey = `daily-welcome:${user.id}`;
+
+        if (localStorage.getItem(storageKey) === dateKey) {
+            return;
+        }
+
+        localStorage.setItem(storageKey, dateKey);
+        setDailyMessage(dailyMessages[getDailyMessageIndex(dateKey)]);
+    }, [user]);
 
     const handleLogout = async () => {
         await logout();
@@ -257,6 +304,49 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {children}
                 </div>
             </main>
+
+            {dailyMessage && (
+                <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/50 px-4 pt-20 backdrop-blur-sm animate-fade-in">
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="daily-welcome-title"
+                        className="w-full max-w-md rounded-2xl border border-indigo-400/20 bg-card-dark p-5 shadow-2xl shadow-indigo-950/40"
+                    >
+                        <div className="flex items-start gap-3">
+                            <div className="rounded-xl bg-indigo-500/15 p-2 text-indigo-300">
+                                <Sparkles className="h-5 w-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h2
+                                    id="daily-welcome-title"
+                                    className="font-display text-base font-bold text-gray-100"
+                                >
+                                    Welcome back!
+                                </h2>
+                                <p className="mt-2 text-sm leading-relaxed text-gray-300">
+                                    {dailyMessage}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setDailyMessage(null)}
+                                className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-800 hover:text-gray-200"
+                                aria-label="Close daily message"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setDailyMessage(null)}
+                            className="mt-4 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
+                        >
+                            Start revising
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
