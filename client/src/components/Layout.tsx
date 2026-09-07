@@ -283,7 +283,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Main Content Area */}
             <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 overscroll-contain">
                 <div className="max-w-6xl mx-auto animate-fade-in pb-12">
-                    {dueCount > 0 && location.pathname !== "/queue" && (
+                    {dueCount > 0 && location.pathname === "/dashboard" && (
                         <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-300 shadow-md">
                             <div className="flex items-center gap-3">
                                 <AlertTriangle className="w-5 h-5 shrink-0 animate-pulse text-amber-400" />
