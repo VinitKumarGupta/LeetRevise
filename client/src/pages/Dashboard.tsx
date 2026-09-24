@@ -6,7 +6,6 @@ import {
   Flame, 
   CheckCircle2, 
   Clock, 
-  AlertTriangle, 
   RefreshCw, 
   TrendingUp, 
   ChevronRight,
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api.js';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { Leaderboard } from '../components/Leaderboard.js';
 
 export const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -37,6 +37,7 @@ export const Dashboard: React.FC = () => {
     onSuccess: (data) => {
       // Invalidate queries to reload data
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
       alert(`Sync successful! Imported ${data.newProblemsCount} new problem(s).`);
     },
     onError: (err: any) => {
@@ -310,37 +311,10 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid: Most Forgotten & Recent Submissions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Most Forgotten Topics */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between">
-          <div>
-            <h2 className="font-display font-bold text-lg text-gray-200 mb-5 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-rose-500" />
-              <span>Retention Pain Points</span>
-            </h2>
-            
-            {analytics.mostForgottenTopics.length === 0 ? (
-              <div className="py-12 text-center text-gray-500 text-sm">
-                No topic warnings! You have great retention.
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {analytics.mostForgottenTopics.map((topicStat: any) => (
-                  <div key={topicStat.topic} className="flex justify-between items-center gap-3 p-3 rounded-xl bg-gray-900/30 border border-border-dark/30 min-w-0">
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-semibold text-gray-200 truncate">{topicStat.topic}</span>
-                      <span className="text-xs text-gray-500">{topicStat.forgotCount} resets / {topicStat.totalCount} reviews</span>
-                    </div>
-                    <span className="text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20 shrink-0">
-                      {topicStat.forgotRate}% Forget Rate
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Grid: Community Leaderboard & Recent Submissions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Real-time Community Leaderboard (Replaced redundant Retention Pain Points) */}
+        <Leaderboard />
 
         {/* Latest Tracked Problems */}
         <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between">
