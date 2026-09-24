@@ -3,6 +3,7 @@ node_modules/
 
 # Compilation output
 dist/
+coverage/
 .tsbuildinfo
 
 # Local SQLite Database files
