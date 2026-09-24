@@ -29,3 +29,20 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
     return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 }
+
+export function authenticateTokenOptional(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+      req.user = {
+        id: decoded.id,
+        email: decoded.email
+      };
+    } catch (error) {
+      // Optional authentication: ignore token error and proceed as guest
+    }
+  }
+  next();
+}

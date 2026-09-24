@@ -8,6 +8,7 @@ import authRouter from "./routes/auth.js";
 import syncRouter from "./routes/sync.js";
 import problemsRouter from "./routes/problems.js";
 import analyticsRouter from "./routes/analytics.js";
+import leaderboardRouter from "./routes/leaderboard.js";
 import db from './db.js';
 
 dotenv.config();
@@ -70,6 +71,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/sync", syncRouter);
 app.use("/api/problems", problemsRouter);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/leaderboard", leaderboardRouter);
 
 // Express error handler
 app.use(
