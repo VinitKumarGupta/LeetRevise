@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
     LayoutDashboard,
     CalendarRange,
-    RefreshCw,
     BarChart3,
     Settings,
     LogOut,
@@ -104,7 +103,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             icon: CalendarRange,
             badge: dueCount > 0 ? dueCount : undefined,
         },
-        { name: "Sync LeetCode", path: "/sync", icon: RefreshCw },
         { name: "Analytics", path: "/analytics", icon: BarChart3 },
         {
             name: "NeetCode 250",

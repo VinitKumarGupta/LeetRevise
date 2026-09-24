@@ -113,11 +113,7 @@ function AppRoutes() {
                 />
                 <Route
                     path="/sync"
-                    element={
-                        <ProtectedRoute>
-                            <SyncAccount />
-                        </ProtectedRoute>
-                    }
+                    element={<Navigate to="/settings" replace />}
                 />
                 <Route
                     path="/analytics"

@@ -2,10 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { 
-  Trophy, 
   Flame, 
-  CheckCircle2, 
-  Clock, 
   RefreshCw, 
   TrendingUp, 
   ChevronRight,
@@ -49,13 +46,8 @@ export const Dashboard: React.FC = () => {
     return (
       <div className="flex flex-col gap-6 animate-pulse">
         <div className="h-10 bg-gray-800/60 rounded-xl w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 bg-gray-800/60 rounded-2xl"></div>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-80 bg-gray-800/60 rounded-2xl"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-80 bg-gray-800/60 rounded-2xl"></div>
           <div className="h-80 bg-gray-800/60 rounded-2xl"></div>
         </div>
       </div>
@@ -104,7 +96,19 @@ export const Dashboard: React.FC = () => {
             Monitor revision streaks, completion rates, and queue stats
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Streak indicator beside Sync button */}
+          <div 
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs sm:text-sm font-semibold shrink-0" 
+            title={`Current Streak: ${summary.streak} days • Best: ${summary.maxStreak} days`}
+          >
+            <Flame className="w-4 h-4 text-amber-500 fill-amber-500/30" />
+            <span>{summary.streak} <span className="text-xs font-normal text-amber-300/80">days streak</span></span>
+            {summary.maxStreak > 0 && (
+              <span className="text-[11px] text-gray-500 font-normal hidden md:inline">(Best: {summary.maxStreak}d)</span>
+            )}
+          </div>
+
           {lastSync && (
             <div className="text-right hidden sm:block">
               <p className="text-[11px] text-gray-500">Last Synced Profile</p>
@@ -123,74 +127,6 @@ export const Dashboard: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
             <span>{syncMutation.isPending ? 'Syncing...' : 'Sync Now'}</span>
           </button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-        {/* Streak */}
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group gap-3">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/10 transition-colors duration-300"></div>
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Streak</span>
-            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100 flex items-center gap-1.5">
-              {summary.streak} <span className="text-xs font-sans font-normal text-gray-500">days</span>
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Max: {summary.maxStreak} d</span>
-          </div>
-          <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-2.5 sm:p-3.5 rounded-xl shadow-inner shadow-amber-500/5 self-end sm:self-center">
-            <Flame className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
-          </div>
-        </div>
-
-        {/* Due Today */}
-        <Link to="/queue?status=due" className="glass-panel glass-panel-hover p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-border-dark/60 shadow-lg gap-3">
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Due Today</span>
-            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
-              {summary.dueCount} <span className="text-xs font-sans font-normal text-gray-500">due</span>
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-500 truncate">
-              {summary.overdueCount > 0 ? (
-                <span className="text-rose-400 font-semibold">{summary.overdueCount} overdue</span>
-              ) : (
-                'Clean backlog'
-              )}
-            </span>
-          </div>
-          <div className="bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 p-2.5 sm:p-3.5 rounded-xl self-end sm:self-center">
-            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </Link>
-
-        {/* Completion Rate */}
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group gap-3">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-emerald-500/10 transition-colors duration-300"></div>
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Retention</span>
-            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
-              {summary.completionRate}%
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Recall rate</span>
-          </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 p-2.5 sm:p-3.5 rounded-xl self-end sm:self-center">
-            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
-
-        {/* Total Solved */}
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-border-dark/60 shadow-lg relative overflow-hidden group gap-3">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none group-hover:bg-purple-500/10 transition-colors duration-300"></div>
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Tracked</span>
-            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
-              {summary.totalSolved} <span className="text-xs font-sans font-normal text-gray-500">items</span>
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Spaced schedule</span>
-          </div>
-          <div className="bg-purple-500/10 border border-purple-500/20 text-purple-400 p-2.5 sm:p-3.5 rounded-xl self-end sm:self-center">
-            <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
         </div>
       </div>
 
