@@ -194,7 +194,58 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Grid: Charts & Lists */}
+      {/* Top Section: Leaderboard & Recent Activity (Prominently visible above the fold) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Real-time Community Leaderboard */}
+        <Leaderboard />
+
+        {/* Latest Tracked Problems */}
+        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between">
+          <div>
+            <h2 className="font-display font-bold text-lg text-gray-200 mb-5">
+              Recently Solved & Synced
+            </h2>
+            
+            {latestProblems.length === 0 ? (
+              <div className="py-12 text-center text-gray-500 text-sm">
+                No problems tracked yet. Link your LeetCode username and click "Sync Now".
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {latestProblems.map((prob: any) => (
+                  <Link 
+                    key={prob.id}
+                    to={`/problem/${prob.id}`} 
+                    className="flex justify-between items-center p-3 rounded-xl bg-gray-900/30 border border-border-dark/30 hover:border-indigo-500/30 hover:bg-gray-800/20 transition-all group"
+                  >
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-semibold text-gray-200 truncate group-hover:text-indigo-400 transition-colors">
+                        {prob.title}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Solved: {new Date(prob.solvedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className={`
+                        text-xs font-semibold px-2 py-0.5 rounded
+                        ${prob.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : ''}
+                        ${prob.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : ''}
+                        ${prob.difficulty === 'Hard' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : ''}
+                      `}>
+                        {prob.difficulty}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Section: Charts & Analytics (Shifted below top activity) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Weekly Chart */}
         <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border-border-dark/60 flex flex-col justify-between shadow-xl min-w-0">
@@ -307,57 +358,6 @@ export const Dashboard: React.FC = () => {
           <div className="border-t border-border-dark/60 pt-4 mt-6 flex justify-between text-xs text-gray-500">
             <span>Total Sync Count</span>
             <span className="font-bold text-gray-300">{totalDiff} solved problems</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid: Community Leaderboard & Recent Submissions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Real-time Community Leaderboard (Replaced redundant Retention Pain Points) */}
-        <Leaderboard />
-
-        {/* Latest Tracked Problems */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between">
-          <div>
-            <h2 className="font-display font-bold text-lg text-gray-200 mb-5">
-              Recently Solved & Synced
-            </h2>
-            
-            {latestProblems.length === 0 ? (
-              <div className="py-12 text-center text-gray-500 text-sm">
-                No problems tracked yet. Link your LeetCode username and click "Sync Now".
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {latestProblems.map((prob: any) => (
-                  <Link 
-                    key={prob.id}
-                    to={`/problem/${prob.id}`} 
-                    className="flex justify-between items-center p-3 rounded-xl bg-gray-900/30 border border-border-dark/30 hover:border-indigo-500/30 hover:bg-gray-800/20 transition-all group"
-                  >
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-semibold text-gray-200 truncate group-hover:text-indigo-400 transition-colors">
-                        {prob.title}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        Solved: {new Date(prob.solvedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className={`
-                        text-xs font-semibold px-2 py-0.5 rounded
-                        ${prob.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : ''}
-                        ${prob.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : ''}
-                        ${prob.difficulty === 'Hard' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : ''}
-                      `}>
-                        {prob.difficulty}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
