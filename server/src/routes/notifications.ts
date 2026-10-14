@@ -137,8 +137,8 @@ router.post(
  */
 router.post("/send-due-reminders", async (req, res) => {
     try {
-        const cronSecret = process.env.CRON_SECRET;
-        if (cronSecret) {
+        const cronSecret = process.env.CRON_SECRET?.replace(/^["']|["']$/g, "").trim();
+        if (cronSecret && cronSecret.length > 0) {
             const authHeader = req.headers.authorization;
             const customHeader = req.headers["x-cron-secret"];
             const isAuthorized =
