@@ -9,6 +9,7 @@ import syncRouter from "./routes/sync.js";
 import problemsRouter from "./routes/problems.js";
 import analyticsRouter from "./routes/analytics.js";
 import leaderboardRouter from "./routes/leaderboard.js";
+import notificationsRouter from "./routes/notifications.js";
 import db from './db.js';
 
 dotenv.config();
@@ -72,6 +73,7 @@ app.use("/api/sync", syncRouter);
 app.use("/api/problems", problemsRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/leaderboard", leaderboardRouter);
+app.use("/api/notifications", notificationsRouter);
 
 // Express error handler
 app.use(
