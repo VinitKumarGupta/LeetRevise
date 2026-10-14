@@ -65,6 +65,12 @@ Upon testing yourself, record one of these results to automatically compute the 
 - **Forgot Solution:** Resets the problem milestone back to Stage 1 (1 day review interval) to rebuild recall.
 - **Skip for Now:** Postpones the review by 1 day.
 
+### 5. Automated Daily Revision Reminders (Brevo)
+
+- **Autonomous Delivery:** Rather than requiring you to open the app, LeetRevise delivers daily personalized revision digests directly to your inbox.
+- **Mobile-Friendly Cards:** Summarizes each problem due today with its difficulty badge, review stage, tags, and one-tap direct links to your LeetRevise notes and LeetCode editor.
+- **Scheduled Trigger:** An external web-cron (e.g. `cron-job.org`) pings `POST /api/notifications/send-due-reminders` every morning, secured with a `CRON_SECRET` header.
+
 ---
 
 ## Screen Previews & Interface
@@ -127,6 +133,13 @@ To run LeetRevise locally:
     PORT=5000
     JWT_SECRET="your-development-jwt-secret-key-12345!"
     NODE_ENV="development"
+
+    # Brevo Email Notifications
+    BREVO_API_KEY="xkeysib-your-brevo-api-key"
+    EMAIL_FROM_ADDRESS="noreply.leetrevise@gmail.com"
+    EMAIL_FROM_NAME="LeetRevise"
+    CRON_SECRET="your-secret-cron-token"
+    APP_URL="http://localhost:5173"
     ```
 
 4. **Initialize Local SQLite Database:**
@@ -157,9 +170,19 @@ To run LeetRevise locally:
 ### 2. Backend API (Render)
 
 - Host the `server` directory as a Node Web Service on Render.com.
-- Config environment variables: `DATABASE_URL` (pooled connection), `DIRECT_DATABASE_URL` (direct connection), `JWT_SECRET`, `NODE_ENV=production`.
+- Config environment variables: `DATABASE_URL` (pooled connection), `DIRECT_DATABASE_URL` (direct connection), `JWT_SECRET`, `NODE_ENV=production`, `BREVO_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`, `CRON_SECRET`, `APP_URL`.
 
 ### 3. Frontend SPA (Vercel)
 
 - Deploy the `client` directory on Vercel.com with framework preset Vite.
 - Vercel uses the `vercel.json` rewrite file to ensure React Router client paths route to `index.html` on browser reloads.
+
+### 4. Scheduled Daily Revision Reminders (cron-job.org)
+
+- Create a free account on [cron-job.org](https://cron-job.org).
+- Configure a daily recurring cron job:
+  - **URL:** `https://<YOUR_RENDER_API_URL>/api/notifications/send-due-reminders`
+  - **Method:** `POST`
+  - **Schedule:** Everyday at your preferred morning hour (e.g. 08:00 AM)
+  - **Headers:** `x-cron-secret: <CRON_SECRET>`
+
