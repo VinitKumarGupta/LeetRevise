@@ -123,16 +123,6 @@ export class EmailService {
                     bg: "#f1f3f4",
                     text: "#3c4043",
                 };
-                const topicsList = p.topics
-                    ? p.topics
-                          .split(",")
-                          .slice(0, 3)
-                          .map(
-                              (t) =>
-                                  `<span style="display:inline-block;background:#f1f5f9;color:#475569;font-size:11px;padding:2px 7px;border-radius:4px;margin-right:4px;margin-bottom:2px;">${t.trim()}</span>`,
-                          )
-                          .join("")
-                    : "";
 
                 const leetReviseProblemUrl = `${appUrl}/problems/${p.id}`;
 
@@ -149,8 +139,7 @@ export class EmailService {
                                 <span style="display: inline-block; background: ${diff.bg}; color: ${diff.text}; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-right: 6px;">
                                     ${p.difficulty}
                                 </span>
-                                <span style="font-size: 12px; color: #64748b; margin-right: 8px; font-weight: 500;">Stage ${p.currentReviewStage + 1} of 6</span>
-                                ${topicsList}
+                                <span style="font-size: 12px; color: #64748b; font-weight: 500;">Stage ${p.currentReviewStage + 1} of 6</span>
                             </div>
                         </td>
                     </tr>
@@ -182,9 +171,8 @@ export class EmailService {
                 
                 <!-- Header -->
                 <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 28px 24px; color: #ffffff;">
-                    <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <div style="margin-bottom: 8px;">
                         <span style="font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: #60a5fa;">LeetRevise</span>
-                        <span style="font-size: 12px; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 9999px; margin-left: 10px; color: #cbd5e1;">Spaced Repetition</span>
                     </div>
                     <h1 style="font-size: 20px; font-weight: 600; margin: 0; color: #f8fafc;">Daily Revision Queue</h1>
                     <p style="font-size: 14px; color: #94a3b8; margin: 6px 0 0 0;">
@@ -216,12 +204,16 @@ export class EmailService {
                             Go to LeetRevise Dashboard →
                         </a>
                     </div>
+
+                    <!-- Do Not Reply System Notice -->
+                    <div style="margin-top: 22px; text-align: center; font-size: 11px; color: #94a3b8; line-height: 1.5;">
+                        Please do not reply to this email. This is an automated, system-generated notification that cannot receive responses.
+                    </div>
                 </div>
 
                 <!-- Footer -->
                 <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 24px; text-align: center; font-size: 12px; color: #94a3b8;">
                     <p style="margin: 0;">LeetRevise • Adaptive Spaced Repetition Tracker</p>
-                    <p style="margin: 4px 0 0 0;">You received this email because you have active revisions due.</p>
                 </div>
             </div>
         </body>
