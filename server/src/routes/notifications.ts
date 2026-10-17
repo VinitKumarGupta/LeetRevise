@@ -6,6 +6,49 @@ import { emailService } from "../services/emailService.js";
 const router = Router();
 
 /**
+ * Randomly picks up to `count` problems (default 2), prioritizing starred problems.
+ * If fewer starred problems exist, remaining slots are filled from unstarred problems.
+ */
+function pickDailyRevisionProblems<T extends { isStarred: boolean }>(
+    problems: T[],
+    count = 2,
+): T[] {
+    if (problems.length <= count) {
+        return problems;
+    }
+
+    const starred = problems.filter((p) => p.isStarred);
+    const unstarred = problems.filter((p) => !p.isStarred);
+
+    // Modern Fisher-Yates shuffle
+    const shuffle = <U>(arr: U[]): U[] => {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    };
+
+    const shuffledStarred = shuffle(starred);
+    const shuffledUnstarred = shuffle(unstarred);
+
+    const selected: T[] = [];
+
+    // Priority 1: Pick starred problems
+    while (selected.length < count && shuffledStarred.length > 0) {
+        selected.push(shuffledStarred.pop()!);
+    }
+
+    // Priority 2: Fill remaining slots with unstarred problems
+    while (selected.length < count && shuffledUnstarred.length > 0) {
+        selected.push(shuffledUnstarred.pop()!);
+    }
+
+    return selected;
+}
+
+/**
  * POST /api/notifications/test-email
  * Authenticated endpoint: Sends an immediate test revision digest to the logged-in user.
  */
@@ -43,8 +86,14 @@ router.post(
                 },
             });
 
+            const totalDueCount = dueSolvedProblems.length;
+            const selectedDueProblems = pickDailyRevisionProblems(
+                dueSolvedProblems,
+                2,
+            );
+
             // Map to summary structure
-            let problemsToSend = dueSolvedProblems.map((item) => ({
+            let problemsToSend = selectedDueProblems.map((item) => ({
                 id: item.id,
                 title: item.problem.title,
                 titleSlug: item.problem.titleSlug,
@@ -62,7 +111,7 @@ router.post(
                 const sampleProblems = await db.solvedProblem.findMany({
                     where: { userId },
                     include: { problem: true },
-                    take: 3,
+                    take: 2,
                 });
 
                 if (sampleProblems.length > 0) {
@@ -104,6 +153,7 @@ router.post(
                 user.name,
                 problemsToSend,
                 appUrl,
+                totalDueCount,
             );
 
             if (!result.success) {
@@ -190,7 +240,15 @@ router.all("/send-due-reminders", async (req, res) => {
                 continue;
             }
 
-            const problemsToSend = user.solvedProblems.map((item) => ({
+            const totalDueCount = user.solvedProblems.length;
+
+            // Pick 2 random problems, prioritizing starred ones
+            const selectedProblems = pickDailyRevisionProblems(
+                user.solvedProblems,
+                2,
+            );
+
+            const problemsToSend = selectedProblems.map((item) => ({
                 id: item.id,
                 title: item.problem.title,
                 titleSlug: item.problem.titleSlug,
@@ -206,6 +264,7 @@ router.all("/send-due-reminders", async (req, res) => {
                 user.name,
                 problemsToSend,
                 appUrl,
+                totalDueCount,
             );
 
             if (result.success) {

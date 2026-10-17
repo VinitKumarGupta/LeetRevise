@@ -35,6 +35,7 @@ export class EmailService {
         userName: string,
         dueProblems: ProblemSummary[],
         appUrl: string = "http://localhost:5173",
+        totalDueCount?: number,
     ): Promise<{ success: boolean; id?: string; error?: string }> {
         if (!this.apiKey) {
             console.warn(
@@ -49,9 +50,14 @@ export class EmailService {
         const subject =
             dueProblems.length === 1
                 ? `🎯 1 LeetCode Problem Due for Revision Today!`
-                : `🎯 ${dueProblems.length} LeetCode Problems Due for Revision Today!`;
+                : `🎯 ${dueProblems.length} LeetCode Problems to Revise Today!`;
 
-        const html = this.buildDigestHtml(userName, dueProblems, appUrl);
+        const html = this.buildDigestHtml(
+            userName,
+            dueProblems,
+            appUrl,
+            totalDueCount,
+        );
 
         try {
             const response = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -103,6 +109,7 @@ export class EmailService {
         userName: string,
         problems: ProblemSummary[],
         appUrl: string,
+        totalDueCount?: number,
     ): string {
         const difficultyColors: Record<string, { bg: string; text: string }> = {
             Easy: { bg: "#e6f4ea", text: "#137333" },
@@ -180,13 +187,23 @@ export class EmailService {
                         <span style="font-size: 12px; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 9999px; margin-left: 10px; color: #cbd5e1;">Spaced Repetition</span>
                     </div>
                     <h1 style="font-size: 20px; font-weight: 600; margin: 0; color: #f8fafc;">Daily Revision Queue</h1>
-                    <p style="font-size: 14px; color: #94a3b8; margin: 6px 0 0 0;">Hi ${userName || "there"}, you have ${problems.length} problem(s) due for recall today.</p>
+                    <p style="font-size: 14px; color: #94a3b8; margin: 6px 0 0 0;">
+                        ${
+                            totalDueCount && totalDueCount > problems.length
+                                ? `Hi ${userName || "there"}, you have <strong>${totalDueCount} problems due</strong> in your queue. Here are ${problems.length} prioritized problems to tackle today:`
+                                : `Hi ${userName || "there"}, you have ${problems.length} problem(s) due for recall today.`
+                        }
+                    </p>
                 </div>
 
                 <!-- Content -->
                 <div style="padding: 20px 16px;">
                     <div style="margin-bottom: 14px; font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Problems Due for Revision (${problems.length})
+                        ${
+                            totalDueCount && totalDueCount > problems.length
+                                ? `Today's Recommended Focus (${problems.length} of ${totalDueCount} Due)`
+                                : `Problems Due for Revision (${problems.length})`
+                        }
                     </div>
                     ${problemRowsHtml}
 
