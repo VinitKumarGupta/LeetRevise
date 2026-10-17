@@ -131,19 +131,22 @@ router.post(
 );
 
 /**
- * POST /api/notifications/send-due-reminders
+ * ALL /api/notifications/send-due-reminders
  * Cron endpoint for cron-job.org to scan and send revision emails to users with problems due today.
+ * Supports both GET and POST, and accepts secret via header (x-cron-secret, Bearer) or query param (?secret=...).
  * Protected by optional CRON_SECRET.
  */
-router.post("/send-due-reminders", async (req, res) => {
+router.all("/send-due-reminders", async (req, res) => {
     try {
         const cronSecret = process.env.CRON_SECRET?.replace(/^["']|["']$/g, "").trim();
         if (cronSecret && cronSecret.length > 0) {
             const authHeader = req.headers.authorization;
             const customHeader = req.headers["x-cron-secret"];
+            const querySecret = req.query.secret as string | undefined;
             const isAuthorized =
                 customHeader === cronSecret ||
-                authHeader === `Bearer ${cronSecret}`;
+                authHeader === `Bearer ${cronSecret}` ||
+                querySecret === cronSecret;
 
             if (!isAuthorized) {
                 return res
