@@ -32,6 +32,11 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
+// Lightweight ping — no DB, instant response. Used by cron-job.org to keep Render awake.
+app.get('/api/ping', (_req, res) => {
+    res.json({ pong: true, timestamp: Date.now() });
+});
+
 // Enhanced diagnostics health check
 app.get('/api/health', async (req, res) => {
   try {
