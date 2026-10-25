@@ -2,51 +2,12 @@ import { Router } from "express";
 import db from "../db.js";
 import { authenticateToken, AuthenticatedRequest } from "../middleware/auth.js";
 import { emailService } from "../services/emailService.js";
+import { getRevisionEmailCandidates } from "../utils/priority.js";
 
 const router = Router();
 
-/**
- * Randomly picks up to `count` problems (default 2), prioritizing starred problems.
- * If fewer starred problems exist, remaining slots are filled from unstarred problems.
- */
-function pickDailyRevisionProblems<T extends { isStarred: boolean }>(
-    problems: T[],
-    count = 2,
-): T[] {
-    if (problems.length <= count) {
-        return problems;
-    }
-
-    const starred = problems.filter((p) => p.isStarred);
-    const unstarred = problems.filter((p) => !p.isStarred);
-
-    // Modern Fisher-Yates shuffle
-    const shuffle = <U>(arr: U[]): U[] => {
-        const copy = [...arr];
-        for (let i = copy.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [copy[i], copy[j]] = [copy[j], copy[i]];
-        }
-        return copy;
-    };
-
-    const shuffledStarred = shuffle(starred);
-    const shuffledUnstarred = shuffle(unstarred);
-
-    const selected: T[] = [];
-
-    // Priority 1: Pick starred problems
-    while (selected.length < count && shuffledStarred.length > 0) {
-        selected.push(shuffledStarred.pop()!);
-    }
-
-    // Priority 2: Fill remaining slots with unstarred problems
-    while (selected.length < count && shuffledUnstarred.length > 0) {
-        selected.push(shuffledUnstarred.pop()!);
-    }
-
-    return selected;
-}
+// In-memory cache to prevent duplicate cron notifications on the same calendar day (YYYY-MM-DD)
+const userLastReminderDate = new Map<string, string>();
 
 /**
  * POST /api/notifications/test-email
@@ -86,14 +47,13 @@ router.post(
                 },
             });
 
-            const totalDueCount = dueSolvedProblems.length;
-            const selectedDueProblems = pickDailyRevisionProblems(
+            const candidates = getRevisionEmailCandidates(
                 dueSolvedProblems,
-                2,
+                now,
             );
 
             // Map to summary structure
-            let problemsToSend = selectedDueProblems.map((item) => ({
+            let problemsToSend = candidates.problemsToSend.map((item) => ({
                 id: item.id,
                 title: item.problem.title,
                 titleSlug: item.problem.titleSlug,
@@ -153,7 +113,9 @@ router.post(
                 user.name,
                 problemsToSend,
                 appUrl,
-                totalDueCount,
+                candidates.totalDueCount,
+                candidates.activeScheduledCount,
+                candidates.backlogCount,
             );
 
             if (!result.success) {
@@ -168,6 +130,9 @@ router.post(
                 message: `Test revision email sent to ${user.email}`,
                 emailId: result.id,
                 count: problemsToSend.length,
+                totalDueCount: candidates.totalDueCount,
+                activeScheduledCount: candidates.activeScheduledCount,
+                backlogCount: candidates.backlogCount,
                 isSimulatedPreview,
             });
         } catch (error: any) {
@@ -185,6 +150,8 @@ router.post(
  * Cron endpoint for cron-job.org to scan and send revision emails to users with problems due today.
  * Supports both GET and POST, and accepts secret via header (x-cron-secret, Bearer) or query param (?secret=...).
  * Protected by optional CRON_SECRET.
+ *
+ * Prioritizes scheduled stage transitions and due revisions while preventing duplicate sends on the same day.
  */
 router.all("/send-due-reminders", async (req, res) => {
     try {
@@ -206,6 +173,8 @@ router.all("/send-due-reminders", async (req, res) => {
         }
 
         const now = new Date();
+        const todayDateKey = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+        const force = req.query.force === "true";
 
         // Fetch users who have active due problems
         const usersWithDueProblems = await db.user.findMany({
@@ -240,15 +209,25 @@ router.all("/send-due-reminders", async (req, res) => {
                 continue;
             }
 
-            const totalDueCount = user.solvedProblems.length;
+            // Prevent duplicate reminder sends on the same calendar day
+            if (!force && userLastReminderDate.get(user.id) === todayDateKey) {
+                skippedCount++;
+                continue;
+            }
 
-            // Pick 2 random problems, prioritizing starred ones
-            const selectedProblems = pickDailyRevisionProblems(
+            // Prioritize scheduled revisions due today (Stage 2+, then Stage 1)
+            const candidates = getRevisionEmailCandidates(
                 user.solvedProblems,
-                2,
+                now,
             );
 
-            const problemsToSend = selectedProblems.map((item) => ({
+            // If no active scheduled revisions and no backlog, skip
+            if (candidates.problemsToSend.length === 0) {
+                skippedCount++;
+                continue;
+            }
+
+            const problemsToSend = candidates.problemsToSend.map((item) => ({
                 id: item.id,
                 title: item.problem.title,
                 titleSlug: item.problem.titleSlug,
@@ -264,11 +243,14 @@ router.all("/send-due-reminders", async (req, res) => {
                 user.name,
                 problemsToSend,
                 appUrl,
-                totalDueCount,
+                candidates.totalDueCount,
+                candidates.activeScheduledCount,
+                candidates.backlogCount,
             );
 
             if (result.success) {
                 sentCount++;
+                userLastReminderDate.set(user.id, todayDateKey);
             } else {
                 errors.push({
                     email: user.email,

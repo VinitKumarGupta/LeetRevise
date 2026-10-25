@@ -3,6 +3,7 @@ import { z } from "zod";
 import db from "../db.js";
 import { authenticateToken, AuthenticatedRequest } from "../middleware/auth.js";
 import { calculateNextReview } from "../utils/scheduler.js";
+import { compareProblemsByPriority } from "../utils/priority.js";
 
 const router = Router();
 
@@ -117,56 +118,45 @@ router.get("/", authenticateToken, async (req: AuthenticatedRequest, res) => {
         });
 
         // Sorting
-        // sortBy: due_asc, due_desc, diff_asc, diff_desc, date_asc, date_desc
-        if (sortBy) {
+        // sortBy: priority, due_asc, due_desc, diff_asc, diff_desc, date_asc, date_desc
+        if (sortBy === "due_asc") {
+            items.sort((a, b) =>
+                new Date(a.nextReviewAt).getTime() -
+                new Date(b.nextReviewAt).getTime()
+            );
+        } else if (sortBy === "due_desc") {
+            items.sort((a, b) =>
+                new Date(b.nextReviewAt).getTime() -
+                new Date(a.nextReviewAt).getTime()
+            );
+        } else if (sortBy === "date_asc") {
+            items.sort((a, b) =>
+                new Date(a.solvedAt).getTime() -
+                new Date(b.solvedAt).getTime()
+            );
+        } else if (sortBy === "date_desc") {
+            items.sort((a, b) =>
+                new Date(b.solvedAt).getTime() -
+                new Date(a.solvedAt).getTime()
+            );
+        } else if (sortBy === "diff_asc" || sortBy === "diff_desc") {
+            const diffWeight = { Easy: 1, Medium: 2, Hard: 3 };
             items.sort((a, b) => {
-                if (sortBy === "due_asc") {
-                    return (
-                        new Date(a.nextReviewAt).getTime() -
-                        new Date(b.nextReviewAt).getTime()
-                    );
-                }
-                if (sortBy === "due_desc") {
-                    return (
-                        new Date(b.nextReviewAt).getTime() -
-                        new Date(a.nextReviewAt).getTime()
-                    );
-                }
-                if (sortBy === "date_asc") {
-                    return (
-                        new Date(a.solvedAt).getTime() -
-                        new Date(b.solvedAt).getTime()
-                    );
-                }
-                if (sortBy === "date_desc") {
-                    return (
-                        new Date(b.solvedAt).getTime() -
-                        new Date(a.solvedAt).getTime()
-                    );
-                }
-                if (sortBy === "diff_asc" || sortBy === "diff_desc") {
-                    const diffWeight = { Easy: 1, Medium: 2, Hard: 3 };
-                    const weightA =
-                        diffWeight[
-                            a.problem.difficulty as "Easy" | "Medium" | "Hard"
-                        ] || 0;
-                    const weightB =
-                        diffWeight[
-                            b.problem.difficulty as "Easy" | "Medium" | "Hard"
-                        ] || 0;
-                    return sortBy === "diff_asc"
-                        ? weightA - weightB
-                        : weightB - weightA;
-                }
-                return 0;
+                const weightA =
+                    diffWeight[
+                        a.problem.difficulty as "Easy" | "Medium" | "Hard"
+                    ] || 0;
+                const weightB =
+                    diffWeight[
+                        b.problem.difficulty as "Easy" | "Medium" | "Hard"
+                    ] || 0;
+                return sortBy === "diff_asc"
+                    ? weightA - weightB
+                    : weightB - weightA;
             });
         } else {
-            // Default sort: overdue/due first, then by nextReviewAt asc
-            items.sort(
-                (a, b) =>
-                    new Date(a.nextReviewAt).getTime() -
-                    new Date(b.nextReviewAt).getTime(),
-            );
+            // Default & 'priority': Prioritize scheduled revisions due today, then overdue scheduled revisions, then backlog
+            items.sort((a, b) => compareProblemsByPriority(a, b, now));
         }
 
         return res.json({ problems: items });

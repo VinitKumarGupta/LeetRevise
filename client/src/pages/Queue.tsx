@@ -21,7 +21,7 @@ export const Queue: React.FC = () => {
     const [search, setSearch] = useState("");
     const [difficulty, setDifficulty] = useState("");
     const [status, setStatus] = useState("due"); // default filter to 'due' revisions
-    const [sortBy, setSortBy] = useState("due_asc");
+    const [sortBy, setSortBy] = useState("priority");
 
     // Fetch problems list
     const {
@@ -207,6 +207,9 @@ export const Queue: React.FC = () => {
                             onChange={(e) => setSortBy(e.target.value)}
                             className="appearance-none w-full bg-gray-900/70 border border-border-dark/70 rounded-xl px-3 py-2.5 pr-9 text-[11px] sm:text-xs text-gray-200 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 shadow-inner shadow-black/20"
                         >
+                            <option value="priority">
+                                Priority (Scheduled First)
+                            </option>
                             <option value="due_asc">
                                 Due Date (Oldest First)
                             </option>
