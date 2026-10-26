@@ -1,188 +1,164 @@
-# LeetRevise
+<div align="center">
 
-LeetRevise is a personal Fullstack productivity web application designed to help software engineers retain solved LeetCode problems long-term using Spaced Repetition.
+# ⚡ LeetRevise
 
-Rather than re-learning complex algorithm solutions from scratch, LeetRevise tracks your submissions, automatically places solved problems into an adaptive milestone review queue, and alerts you when it is time to revise.
+**Master algorithmic patterns through intelligent, adaptive spaced repetition.**
 
----
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-## The Core Problem & Solution
+<br />
 
-- **The Problem:** Software engineers solve hundreds of LeetCode problems but forget the core solution patterns (graphs, dynamic programming templates, tree traversals) after a few weeks.
-- **The Solution:** LeetRevise introduces an adaptive spaced repetition schedule (Stages 1 through 6). By reviewing the patterns at increasing time intervals (1 day, 3 days, 1 week, etc.), solutions are reinforced and committed to long-term memory with minimal revision effort.
+<p align="center">
+  <a href="#about-the-project">About</a> •
+  <a href="#key-features">Key Features</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#roadmap">Roadmap</a> •
+  <a href="#contributing">Contributing</a>
+</p>
 
----
-
-## End-to-End Revision Workflow
-
-Here is how LeetRevise coordinates your spaced repetition schedule:
-
-```mermaid
-graph TD
-    A[Link LeetCode Account] --> B[Sync Submissions]
-    B --> C{Accepted Submissions Found?}
-    C -- Yes --> D[Add to Revision Queue: Stage 1]
-    C -- No --> E[Import Manually via Slug]
-    E --> D
-    D --> F[Active Revision Queue]
-    F --> G{Is Revision Due Today?}
-    G -- Yes --> H[Log Revision Result]
-    G -- No --> I[Upcoming Queue Section]
-    H --> J{Outcome Selected}
-    J -- Solved Easily --> K[Advance Stage + Extend Interval]
-    J -- Solved with Effort --> L[Maintain Current Stage + Repeat Interval]
-    J -- Forgot Solution --> M[Reset to Stage 1]
-    J -- Skip for Now --> N[Postpone 1 Day]
-    K --> F
-    L --> F
-    M --> F
-    N --> F
-```
-
-### 1. Synchronizing Submissions
-
-- **Account Linking:** Link your public LeetCode username on the Sync Account page.
-- **Auto-Sync:** LeetRevise calls LeetCode's public GraphQL API to fetch your recent accepted solutions.
-- **Manual Import Fallback:** If LeetCode rate limits the API or a solution is old, users can input the problem's slug (e.g. `two-sum`) or URL to manually resolve details and append it to the queue.
-
-### 2. The Active Revision Queue
-
-- Items are sorted as a priority queue based on their calculated `nextReviewAt` timestamp.
-- Problems currently due or overdue show up at the top of the list with a visible alarm indicator.
-
-### 3. Reviewing a Solution
-
-- Clicking "Revise" takes you to the Problem Detail page.
-- Read/write custom markdown notes to detail the solution pattern, tricky edge cases, and time/space complexity.
-- Click "Open LeetCode" to head directly to the editor on LeetCode.
-
-### 4. Logging Outcomes (Interval Scheduling)
-
-Upon testing yourself, record one of these results to automatically compute the next milestone:
-
-- **Solved Easily:** Advances the problem to the next stage (Stage 1 to Stage 2) and increases the revision interval (e.g., from 1 day to 3 days).
-- **Solved with Effort:** Retains your current stage and schedules another check for the same interval.
-- **Forgot Solution:** Resets the problem milestone back to Stage 1 (1 day review interval) to rebuild recall.
-- **Skip for Now:** Postpones the review by 1 day.
-
-### 5. Automated Daily Revision Reminders (Brevo)
-
-- **Autonomous Delivery:** Rather than requiring you to open the app, LeetRevise delivers daily personalized revision digests directly to your inbox.
-- **Mobile-Friendly Cards:** Summarizes each problem due today with its difficulty badge, review stage, tags, and one-tap direct links to your LeetRevise notes and LeetCode editor.
-- **Scheduled Trigger:** An external web-cron (e.g. `cron-job.org`) pings `POST /api/notifications/send-due-reminders` every morning, secured with a `CRON_SECRET` header.
+</div>
 
 ---
 
-## Screen Previews & Interface
+## About the Project
 
-### Dashboard View
+Software engineers often solve hundreds of LeetCode problems only to forget foundational patterns—such as dynamic programming state transitions, graph traversals, and two-pointer templates—weeks later.
 
-The dashboard tracks consistency streaks, completion rates, and active queue counts.
+**LeetRevise** solves this retention dilemma by replacing passive re-solving with an **adaptive, 6-stage spaced repetition schedule**. The platform automatically imports your accepted submissions from LeetCode, calculates optimal milestone review intervals, prioritizes high-impact scheduled revisions, and delivers targeted daily digest cards directly to your inbox so you never lose problem intuition.
 
-![Dashboard Desktop View](screenshots/dashboard_desktop.png)
-
-### Revision Queue
-
-Priority-sorted queue displaying problems due or overdue.
-
-![Queue Desktop View](screenshots/queue_desktop.png)
-
-### LeetCode Sync Account
-
-Link your public profile or import solved problem slugs manually.
-
-![Sync Desktop View](screenshots/sync_desktop.png)
-
-### Problem Details & solution logging
-
-Visual milestone stages progress stepper and Solution Notes editor.
-
-![Problem Detail Desktop View](screenshots/problem_detail_desktop.png)
+<div align="center">
+  <img src="screenshots/Dashboard.png" alt="LeetRevise Application Dashboard" width="900" style="border-radius: 10px; border: 1px solid #30363d;" />
+</div>
 
 ---
 
-## Local Development Setup
+## Key Features
 
-To run LeetRevise locally:
+- **Automated LeetCode Synchronization:** Connect your public LeetCode profile to fetch accepted submissions via GraphQL, with manual slug/URL import fallbacks.
+- **Priority-First Revision Queue:** Intelligent multi-tier sorting ensures scheduled stage transitions due today appear at the top, preventing older backlog imports from overshadowing active revision cycles.
+- **Adaptive 6-Stage Repetition Engine:** Dynamic interval scaling ($1\text{d} \to 3\text{d} \to 7\text{d} \to 14\text{d} \to 30\text{d} \to 90\text{d}$) that adjusts intervals when solutions are solved easily, maintained upon effort, or reset when forgotten.
+- **Automated Daily Email Reminders:** Scheduled web-cron triggers personalized daily digest emails via Brevo, featuring one-tap access to markdown solution notes, difficulty badges, and direct LeetCode links.
+- **Rich Analytics & Community Leaderboard:** Interactive dashboards tracking consistency streaks, stage progression distribution, difficulty breakdowns, and weekly recall metrics.
+
+---
+
+## Tech Stack
+
+| Category           | Technologies                                                                           |
+| :----------------- | :------------------------------------------------------------------------------------- |
+| **Frontend**       | React 19, TypeScript, Vite, Tailwind CSS, TanStack React Query, Recharts, Lucide Icons |
+| **Backend**        | Node.js, Express.js, TypeScript, Zod, Cookie-Parser, CORS                              |
+| **Database & ORM** | PostgreSQL (Neon Serverless Postgres), Prisma ORM                                      |
+| **Email & Jobs**   | Brevo (Sendinblue) Transactional API, cron-job.org HTTP Trigger                        |
+| **Authentication** | JWT (JSON Web Tokens), HTTP-Only Cookies, Bcrypt.js                                    |
+| **Deployment**     | Vercel (Client SPA), Render (API Web Service)                                          |
+
+---
+
+## Getting Started
+
+Follow these instructions to configure and run a local development instance of LeetRevise.
 
 ### Prerequisites
 
-- Node.js (v18+)
-- npm
+Ensure you have the following installed on your machine:
 
-### Installation Steps
+- **Node.js:** `v18.0.0` or higher ([Download Node.js](https://nodejs.org/))
+- **npm:** `v9.0.0` or higher (Bundled with Node.js)
+- **Git:** ([Download Git](https://git-scm.com/))
+
+### Installation
 
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/YOUR_USERNAME/LeetRevise.git
+    git clone https://github.com/VinitKumarGupta/LeetRevise.git
     cd LeetRevise
     ```
 
-2. **Install all dependencies concurrently:**
-
+2. **Install root, client, and server dependencies:**
     ```bash
     npm run install:all
     ```
 
-3. **Configure Environment Variables:**
+### Configuration
+
+1. **Configure Backend Environment:**
    Create a `.env` file in the `server` directory:
 
     ```env
+    # Database Connections (SQLite for local, PostgreSQL for production)
     DATABASE_URL="file:./dev.db"
     PORT=5000
-    JWT_SECRET="your-development-jwt-secret-key-12345!"
     NODE_ENV="development"
+    JWT_SECRET="your-development-jwt-secret-key-12345!"
 
-    # Brevo Email Notifications
-    BREVO_API_KEY="xkeysib-your-brevo-api-key"
+    # Client URL
+    APP_URL="http://localhost:5173"
+
+    # Brevo Email Configuration (Optional for mock emails)
+    BREVO_API_KEY="your-brevo-api-key"
     EMAIL_FROM_ADDRESS="noreply.leetrevise@gmail.com"
     EMAIL_FROM_NAME="LeetRevise"
-    CRON_SECRET="your-secret-cron-token"
-    APP_URL="http://localhost:5173"
+    CRON_SECRET="your-local-cron-secret-token"
     ```
 
-4. **Initialize Local SQLite Database:**
-
+2. **Initialize Local Database:**
     ```bash
     cd server
     npx prisma db push
     cd ..
     ```
 
-5. **Start Dev Servers (Frontend + Backend Concurrently):**
-    ```bash
-    npm run dev
-    ```
+---
 
-    - Frontend: http://localhost:5173
-    - Backend: http://localhost:5000
+## Usage
+
+### Running Locally
+
+Launch both frontend and backend development servers concurrently:
+
+```bash
+npm run dev
+```
+
+- **Frontend Application:** [http://localhost:5173](http://localhost:5173)
+- **Backend API:** [http://localhost:5000](http://localhost:5000)
+- **Health Check Endpoint:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
+- **Keep-Alive Ping:** [http://localhost:5000/api/ping](http://localhost:5000/api/ping)
+
+### Running Tests
+
+Execute the automated test suite in the server:
+
+```bash
+cd server
+npm test
+```
 
 ---
 
-## Production Deployment Reference
+## Contributing
 
-### 1. Database (Neon)
+Contributions, bug reports, and feature suggestions are welcome!
 
-- Create a Serverless Postgres instance on Neon.tech.
-- Run `npx prisma db push` with your Neon database string to instantiate tables.
+1. Fork the Project (`https://github.com/VinitKumarGupta/LeetRevise/fork`)
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'feat: Add AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-### 2. Backend API (Render)
+---
 
-- Host the `server` directory as a Node Web Service on Render.com.
-- Config environment variables: `DATABASE_URL` (pooled connection), `DIRECT_DATABASE_URL` (direct connection), `JWT_SECRET`, `NODE_ENV=production`, `BREVO_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`, `CRON_SECRET`, `APP_URL`.
+## License
 
-### 3. Frontend SPA (Vercel)
-
-- Deploy the `client` directory on Vercel.com with framework preset Vite.
-- Vercel uses the `vercel.json` rewrite file to ensure React Router client paths route to `index.html` on browser reloads.
-
-### 4. Scheduled Daily Revision Reminders (cron-job.org)
-
-- Create a free account on [cron-job.org](https://cron-job.org).
-- Configure a daily recurring cron job:
-  - **URL:** `https://<YOUR_RENDER_API_URL>/api/notifications/send-due-reminders`
-  - **Method:** `POST`
-  - **Schedule:** Everyday at your preferred morning hour (e.g. 08:00 AM)
-  - **Headers:** `x-cron-secret: <CRON_SECRET>`
-
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
