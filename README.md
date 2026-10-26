@@ -33,7 +33,7 @@
 
 Software engineers often solve hundreds of LeetCode problems only to forget foundational patterns—such as dynamic programming state transitions, graph traversals, and two-pointer templates—weeks later.
 
-**LeetRevise** solves this retention dilemma by replacing passive re-solving with an **adaptive, 6-stage spaced repetition schedule**. The platform automatically imports your accepted submissions from LeetCode, calculates optimal milestone review intervals, prioritizes high-impact scheduled revisions, and delivers targeted daily digest cards directly to your inbox so you never lose problem intuition.
+**LeetRevise** solves this retention dilemma by replacing passive re-solving with an **adaptive, 6-stage spaced repetition schedule**. The platform automatically imports your accepted submissions from LeetCode, calculates optimal milestone review intervals, prioritizes high-impact scheduled revisions, and delivers targeted daily problems to your inbox for revision so you never lose problem intuition.
 
 <div align="center">
   <img src="screenshots/Dashboard.png" alt="LeetRevise Application Dashboard" width="900" style="border-radius: 10px; border: 1px solid #30363d;" />
