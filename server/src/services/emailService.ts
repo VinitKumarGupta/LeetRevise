@@ -183,7 +183,9 @@ export class EmailService {
                     <h1 style="font-size: 20px; font-weight: 600; margin: 0; color: #f8fafc;">Daily Revision Queue</h1>
                     <p style="font-size: 14px; color: #94a3b8; margin: 6px 0 0 0;">
                         ${
-                            backlogCount && backlogCount > 0
+                            activeScheduledCount && activeScheduledCount > problems.length
+                                ? `Hi ${userName || "there"}, you have <strong>${activeScheduledCount} scheduled revisions</strong> in your queue. Here are today's top ${problems.length} prioritized problems to tackle:`
+                                : backlogCount && backlogCount > 0
                                 ? `Hi ${userName || "there"}, you have <strong>${problems.length} scheduled revision${problems.length > 1 ? "s" : ""}</strong> requiring attention today (plus ${backlogCount} older backlog problem${backlogCount > 1 ? "s" : ""} in your queue):`
                                 : totalDueCount && totalDueCount > problems.length
                                 ? `Hi ${userName || "there"}, you have <strong>${problems.length} prioritized problems</strong> due today (${totalDueCount} total in queue):`
@@ -196,7 +198,9 @@ export class EmailService {
                 <div style="padding: 20px 16px;">
                     <div style="margin-bottom: 14px; font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
                         ${
-                            backlogCount && backlogCount > 0
+                            activeScheduledCount && activeScheduledCount > problems.length
+                                ? `Today's Recommended Focus (${problems.length} of ${activeScheduledCount} Scheduled)`
+                                : backlogCount && backlogCount > 0
                                 ? `Scheduled Revisions Due Today (${problems.length})`
                                 : totalDueCount && totalDueCount > problems.length
                                 ? `Today's Recommended Focus (${problems.length} of ${totalDueCount} Due)`

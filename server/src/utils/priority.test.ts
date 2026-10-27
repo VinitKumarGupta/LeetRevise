@@ -220,6 +220,22 @@ describe("Prioritization and Reminder Logic", () => {
             ]);
         });
 
+        it("limits scheduled revisions to at most 3 even when 6 or more are due", () => {
+            const sixDueProblems = Array.from({ length: 6 }, (_, i) =>
+                createProblem({
+                    id: `active-${i}`,
+                    currentReviewStage: 1,
+                    reviewCount: 1,
+                    nextReviewAt: new Date(`2026-10-2${i}T10:00:00Z`),
+                }),
+            );
+
+            const result = getRevisionEmailCandidates(sixDueProblems, fixedNow);
+
+            expect(result.activeScheduledCount).toBe(6);
+            expect(result.problemsToSend).toHaveLength(3); // Capped at exactly 3
+        });
+
         it("suggests up to 2 backlog focus problems when user has NO active scheduled revisions", () => {
             const backlogProblems = [
                 createProblem({

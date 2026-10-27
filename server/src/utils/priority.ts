@@ -138,8 +138,8 @@ export function compareProblemsByPriority<T extends PrioritizableProblem>(
  *
  * Rules:
  * - Collects all active scheduled revisions requiring revision today (Rank 1, 2, 3, 4).
- * - If active scheduled revisions exist: sends ALL of them (up to maxAllowed, default 10)
- *   without letting long-overdue backlog (Rank 5) create reminder noise.
+ * - If active scheduled revisions exist: sends up to 3 prioritized problems (capped at max 3)
+ *   so the daily workload is focused and manageable without causing fatigue.
  * - If NO active scheduled revisions exist, but user has backlog:
  *   picks up to 2 prioritized backlog problems (starred first, earliest solved)
  *   to help user start clearing older problems without overwhelming them.
@@ -147,7 +147,7 @@ export function compareProblemsByPriority<T extends PrioritizableProblem>(
 export function getRevisionEmailCandidates<T extends PrioritizableProblem>(
     problems: T[],
     now: Date = new Date(),
-    maxActiveAllowed = 10,
+    maxActiveAllowed = 3,
 ): {
     problemsToSend: T[];
     totalDueCount: number;
