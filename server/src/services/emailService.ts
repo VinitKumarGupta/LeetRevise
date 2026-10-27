@@ -64,28 +64,31 @@ export class EmailService {
         );
 
         try {
-            const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                    "api-key": this.apiKey,
-                },
-                body: JSON.stringify({
-                    sender: {
-                        name: this.fromName,
-                        email: this.fromEmail,
+            const response = await fetch(
+                "https://api.brevo.com/v3/smtp/email",
+                {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        "api-key": this.apiKey,
                     },
-                    to: [
-                        {
-                            email: userEmail,
-                            name: userName || "Software Engineer",
+                    body: JSON.stringify({
+                        sender: {
+                            name: this.fromName,
+                            email: this.fromEmail,
                         },
-                    ],
-                    subject,
-                    htmlContent: html,
-                }),
-            });
+                        to: [
+                            {
+                                email: userEmail,
+                                name: userName || "Software Engineer",
+                            },
+                        ],
+                        subject,
+                        htmlContent: html,
+                    }),
+                },
+            );
 
             const data: any = await response.json();
 
@@ -183,30 +186,21 @@ export class EmailService {
                     <h1 style="font-size: 20px; font-weight: 600; margin: 0; color: #f8fafc;">Daily Revision Queue</h1>
                     <p style="font-size: 14px; color: #94a3b8; margin: 6px 0 0 0;">
                         ${
-                            activeScheduledCount && activeScheduledCount > problems.length
+                            activeScheduledCount &&
+                            activeScheduledCount > problems.length
                                 ? `Hi ${userName || "there"}, you have <strong>${activeScheduledCount} scheduled revisions</strong> in your queue. Here are today's top ${problems.length} prioritized problems to tackle:`
                                 : backlogCount && backlogCount > 0
-                                ? `Hi ${userName || "there"}, you have <strong>${problems.length} scheduled revision${problems.length > 1 ? "s" : ""}</strong> requiring attention today (plus ${backlogCount} older backlog problem${backlogCount > 1 ? "s" : ""} in your queue):`
-                                : totalDueCount && totalDueCount > problems.length
-                                ? `Hi ${userName || "there"}, you have <strong>${problems.length} prioritized problems</strong> due today (${totalDueCount} total in queue):`
-                                : `Hi ${userName || "there"}, you have ${problems.length} scheduled problem${problems.length > 1 ? "s" : ""} due for recall today:`
+                                  ? `Hi ${userName || "there"}, you have <strong>${problems.length} scheduled revision${problems.length > 1 ? "s" : ""}</strong> requiring attention today (plus ${backlogCount} older backlog problem${backlogCount > 1 ? "s" : ""} in your queue):`
+                                  : totalDueCount &&
+                                      totalDueCount > problems.length
+                                    ? `Hi ${userName || "there"}, you have <strong>${problems.length} prioritized problems</strong> due today (${totalDueCount} total in queue):`
+                                    : `Hi ${userName || "there"}, you have ${problems.length} scheduled problem${problems.length > 1 ? "s" : ""} due for recall today:`
                         }
                     </p>
                 </div>
 
                 <!-- Content -->
                 <div style="padding: 20px 16px;">
-                    <div style="margin-bottom: 14px; font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                        ${
-                            activeScheduledCount && activeScheduledCount > problems.length
-                                ? `Today's Recommended Focus (${problems.length} of ${activeScheduledCount} Scheduled)`
-                                : backlogCount && backlogCount > 0
-                                ? `Scheduled Revisions Due Today (${problems.length})`
-                                : totalDueCount && totalDueCount > problems.length
-                                ? `Today's Recommended Focus (${problems.length} of ${totalDueCount} Due)`
-                                : `Problems Due for Revision (${problems.length})`
-                        }
-                    </div>
                     ${problemRowsHtml}
 
                     <!-- CTA Banner -->
