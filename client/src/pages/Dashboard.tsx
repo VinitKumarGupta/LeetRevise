@@ -70,7 +70,7 @@ export const Dashboard: React.FC = () => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card-dark border border-border-dark p-3 rounded-xl shadow-xl text-xs">
-          <p className="text-gray-400 font-medium">Week: {payload[0].payload.weekStart}</p>
+          <p className="text-gray-400 font-medium">Week: {payload[0].payload.weekRange}</p>
           <p className="text-indigo-400 font-bold mt-1">Solved: {payload[0].value} problems</p>
         </div>
       );

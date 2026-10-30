@@ -191,13 +191,17 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
       .slice(0, 5); // Top 5 forgotten topics
 
     // 7. Solved Problems per week (last 6 weeks)
-    const solvedPerWeek: { weekStart: string; count: number }[] = [];
+    const solvedPerWeek: { weekStart: string; weekRange: string; count: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i * 7);
       // Get start of week (Sunday or Monday)
       const weekStart = new Date(d.setDate(d.getDate() - d.getDay()));
       const weekStartStr = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      const formatWeekDate = (date: Date) =>
+        date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       
       const count = solvedProblems.filter((p) => {
         const solvedDate = new Date(p.solvedAt);
@@ -206,7 +210,11 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
         return solvedDate >= weekStart && solvedDate < nextWeek;
       }).length;
 
-      solvedPerWeek.push({ weekStart: weekStartStr, count });
+      solvedPerWeek.push({
+        weekStart: weekStartStr,
+        weekRange: `${formatWeekDate(weekStart)} – ${formatWeekDate(weekEnd)}`,
+        count,
+      });
     }
 
     // 8. Latest Solved Problems (last 5)

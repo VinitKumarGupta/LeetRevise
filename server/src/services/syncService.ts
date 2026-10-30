@@ -2,6 +2,7 @@ import db from '../db.js';
 import { calculateNextReview } from '../utils/scheduler.js';
 
 const LEETCODE_GRAPHQL_URL = 'https://leetcode.com/graphql';
+const MAX_NEW_PROBLEMS_PER_SYNC = 6;
 
 interface Submission {
   title: string;
@@ -149,6 +150,10 @@ export async function syncUserSubmissions(userId: string, username: string): Pro
 
     // 4. Process each solved problem
     for (const [titleSlug, sub] of uniqueSolvedSlugs.entries()) {
+      if (newProblemsCount >= MAX_NEW_PROBLEMS_PER_SYNC) {
+        break;
+      }
+
       // Find if we already have this problem solved by this user
       const existingSolved = await db.solvedProblem.findFirst({
         where: {
