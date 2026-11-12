@@ -166,7 +166,7 @@ describe("Prioritization and Reminder Logic", () => {
     });
 
     describe("getRevisionEmailCandidates", () => {
-        it("sends all scheduled revisions due today without backlog dominating", () => {
+        it("sends all scheduled revisions due today and includes backlog alongside", () => {
             const activeScheduled1 = createProblem({
                 id: "active-1",
                 currentReviewStage: 1,
@@ -218,6 +218,9 @@ describe("Prioritization and Reminder Logic", () => {
                 "active-1", // Stage 1 transition second
                 "active-3", // Overdue scheduled third
             ]);
+            // Must also include up to 2 backlog problems
+            expect(result.backlogToSend).toHaveLength(2);
+            expect(result.backlogToSend.every((p) => p.id.startsWith("backlog-"))).toBe(true);
         });
 
         it("limits scheduled revisions to at most 3 even when 6 or more are due", () => {
@@ -234,6 +237,7 @@ describe("Prioritization and Reminder Logic", () => {
 
             expect(result.activeScheduledCount).toBe(6);
             expect(result.problemsToSend).toHaveLength(3); // Capped at exactly 3
+            expect(result.backlogToSend).toHaveLength(0); // No backlog
         });
 
         it("suggests up to 2 backlog focus problems when user has NO active scheduled revisions", () => {
@@ -263,9 +267,10 @@ describe("Prioritization and Reminder Logic", () => {
             expect(result.totalDueCount).toBe(3);
             expect(result.activeScheduledCount).toBe(0);
             expect(result.backlogCount).toBe(3);
-            expect(result.problemsToSend).toHaveLength(2);
+            expect(result.problemsToSend).toHaveLength(0); // No active scheduled
+            expect(result.backlogToSend).toHaveLength(2); // Backlog capped at 2
             // Starred backlog problems should be chosen first
-            expect(result.problemsToSend.map((p) => p.id)).toEqual([
+            expect(result.backlogToSend.map((p) => p.id)).toEqual([
                 "backlog-starred-1",
                 "backlog-starred-2",
             ]);

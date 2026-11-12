@@ -7,6 +7,7 @@ interface ProblemSummary {
     topics: string;
     currentReviewStage: number;
     isStarred: boolean;
+    solvedAt?: string;
 }
 
 export class EmailService {
@@ -38,6 +39,7 @@ export class EmailService {
         totalDueCount?: number,
         activeScheduledCount?: number,
         backlogCount?: number,
+        backlogProblems?: ProblemSummary[],
     ): Promise<{ success: boolean; id?: string; error?: string }> {
         if (!this.apiKey) {
             console.warn(
@@ -49,10 +51,11 @@ export class EmailService {
             };
         }
 
+        const totalCount = dueProblems.length + (backlogProblems?.length || 0);
         const subject =
-            dueProblems.length === 1
+            totalCount === 1
                 ? `🎯 1 LeetCode Problem Due for Revision Today!`
-                : `🎯 ${dueProblems.length} LeetCode Problems to Revise Today!`;
+                : `🎯 ${totalCount} LeetCode Problems to Revise Today!`;
 
         const html = this.buildDigestHtml(
             userName,
@@ -61,6 +64,7 @@ export class EmailService {
             totalDueCount,
             activeScheduledCount,
             backlogCount,
+            backlogProblems,
         );
 
         try {
@@ -119,6 +123,7 @@ export class EmailService {
         totalDueCount?: number,
         activeScheduledCount?: number,
         backlogCount?: number,
+        backlogProblems?: ProblemSummary[],
     ): string {
         const difficultyColors: Record<string, { bg: string; text: string }> = {
             Easy: { bg: "#e6f4ea", text: "#137333" },
@@ -167,6 +172,82 @@ export class EmailService {
             })
             .join("");
 
+        // Build backlog section HTML (if any backlog problems are included)
+        const backlogSectionHtml = backlogProblems && backlogProblems.length > 0
+            ? (() => {
+                const backlogRowsHtml = backlogProblems
+                    .map((p) => {
+                        const diff = difficultyColors[p.difficulty] || {
+                            bg: "#f1f3f4",
+                            text: "#3c4043",
+                        };
+
+                        const leetReviseProblemUrl = `${appUrl}/problems/${p.id}`;
+
+                        // Calculate "solved X days ago" from solvedAt
+                        let solvedAgoText = "Solved a while ago";
+                        if (p.solvedAt) {
+                            const solvedDate = new Date(p.solvedAt);
+                            const daysSince = Math.floor(
+                                (new Date().getTime() - solvedDate.getTime()) / (1000 * 60 * 60 * 24),
+                            );
+                            if (daysSince <= 1) {
+                                solvedAgoText = "Solved yesterday";
+                            } else if (daysSince < 30) {
+                                solvedAgoText = `Solved ${daysSince} days ago`;
+                            } else if (daysSince < 60) {
+                                solvedAgoText = `Solved ~1 month ago`;
+                            } else {
+                                const months = Math.floor(daysSince / 30);
+                                solvedAgoText = `Solved ~${months} months ago`;
+                            }
+                        }
+
+                        return `
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; border-collapse: separate; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                            <tr>
+                                <td style="padding: 14px 16px 8px 16px;">
+                                    <div style="font-weight: 600; font-size: 15px; line-height: 1.4; color: #0f172a; margin-bottom: 6px;">
+                                        <a href="${leetReviseProblemUrl}" style="color: #0f172a; text-decoration: none;">${p.title}</a>
+                                        ${p.isStarred ? '<span style="color: #f59e0b; margin-left: 4px;">★</span>' : ""}
+                                    </div>
+                                    <div style="margin-bottom: 4px; line-height: 1.8;">
+                                        <span style="display: inline-block; background: ${diff.bg}; color: ${diff.text}; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-right: 6px;">
+                                            ${p.difficulty}
+                                        </span>
+                                        <span style="font-size: 12px; color: #92400e; font-weight: 500;">${solvedAgoText} · Never reviewed</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 16px 14px 16px;">
+                                    <a href="${leetReviseProblemUrl}" style="display: inline-block; background: #d97706; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 6px; margin-right: 8px;">
+                                        Start Reviewing →
+                                    </a>
+                                    <a href="${p.url}" target="_blank" style="display: inline-block; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; text-decoration: none; font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 6px;">
+                                        LeetCode ↗
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                        `;
+                    })
+                    .join("");
+
+                return `
+                    <div style="margin-top: 28px; margin-bottom: 8px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                        <div style="margin-bottom: 14px;">
+                            <span style="font-size: 16px; font-weight: 700; color: #92400e;">📦 From Your Backlog</span>
+                            <p style="font-size: 13px; color: #78716c; margin: 4px 0 0 0;">
+                                These problems were solved a while ago but never reviewed. Consider adding them to your revision routine.
+                            </p>
+                        </div>
+                        ${backlogRowsHtml}
+                    </div>
+                `;
+            })()
+            : "";
+
         return `
         <!DOCTYPE html>
         <html>
@@ -202,6 +283,8 @@ export class EmailService {
                 <!-- Content -->
                 <div style="padding: 20px 16px;">
                     ${problemRowsHtml}
+
+                    ${backlogSectionHtml}
 
                     <!-- CTA Banner -->
                     <div style="margin-top: 28px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; text-align: center;">

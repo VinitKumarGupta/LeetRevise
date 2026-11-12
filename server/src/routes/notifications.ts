@@ -64,10 +64,22 @@ router.post(
                 isStarred: item.isStarred,
             }));
 
+            let backlogToSend = candidates.backlogToSend.map((item) => ({
+                id: item.id,
+                title: item.problem.title,
+                titleSlug: item.problem.titleSlug,
+                difficulty: item.problem.difficulty,
+                url: item.problem.url,
+                topics: item.problem.topics,
+                currentReviewStage: item.currentReviewStage,
+                isStarred: item.isStarred,
+                solvedAt: item.solvedAt.toISOString(),
+            }));
+
             let isSimulatedPreview = false;
 
             // If user has no problems currently due, send a preview sample from their library
-            if (problemsToSend.length === 0) {
+            if (problemsToSend.length === 0 && backlogToSend.length === 0) {
                 const sampleProblems = await db.solvedProblem.findMany({
                     where: { userId },
                     include: { problem: true },
@@ -116,6 +128,7 @@ router.post(
                 candidates.totalDueCount,
                 candidates.activeScheduledCount,
                 candidates.backlogCount,
+                backlogToSend,
             );
 
             if (!result.success) {
@@ -129,10 +142,11 @@ router.post(
                 success: true,
                 message: `Test revision email sent to ${user.email}`,
                 emailId: result.id,
-                count: problemsToSend.length,
+                count: problemsToSend.length + backlogToSend.length,
                 totalDueCount: candidates.totalDueCount,
                 activeScheduledCount: candidates.activeScheduledCount,
                 backlogCount: candidates.backlogCount,
+                backlogSentCount: backlogToSend.length,
                 isSimulatedPreview,
             });
         } catch (error: any) {
@@ -222,7 +236,7 @@ router.all("/send-due-reminders", async (req, res) => {
             );
 
             // If no active scheduled revisions and no backlog, skip
-            if (candidates.problemsToSend.length === 0) {
+            if (candidates.problemsToSend.length === 0 && candidates.backlogToSend.length === 0) {
                 skippedCount++;
                 continue;
             }
@@ -238,6 +252,18 @@ router.all("/send-due-reminders", async (req, res) => {
                 isStarred: item.isStarred,
             }));
 
+            const backlogToSend = candidates.backlogToSend.map((item) => ({
+                id: item.id,
+                title: item.problem.title,
+                titleSlug: item.problem.titleSlug,
+                difficulty: item.problem.difficulty,
+                url: item.problem.url,
+                topics: item.problem.topics,
+                currentReviewStage: item.currentReviewStage,
+                isStarred: item.isStarred,
+                solvedAt: item.solvedAt.toISOString(),
+            }));
+
             const result = await emailService.sendRevisionDigest(
                 user.email,
                 user.name,
@@ -246,6 +272,7 @@ router.all("/send-due-reminders", async (req, res) => {
                 candidates.totalDueCount,
                 candidates.activeScheduledCount,
                 candidates.backlogCount,
+                backlogToSend,
             );
 
             if (result.success) {

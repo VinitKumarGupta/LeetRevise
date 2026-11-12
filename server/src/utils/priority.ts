@@ -138,18 +138,21 @@ export function compareProblemsByPriority<T extends PrioritizableProblem>(
  *
  * Rules:
  * - Collects all active scheduled revisions requiring revision today (Rank 1, 2, 3, 4).
- * - If active scheduled revisions exist: sends up to 3 prioritized problems (capped at max 3)
- *   so the daily workload is focused and manageable without causing fatigue.
- * - If NO active scheduled revisions exist, but user has backlog:
- *   picks up to 2 prioritized backlog problems (starred first, earliest solved)
- *   to help user start clearing older problems without overwhelming them.
+ * - Sends up to `maxActiveAllowed` (default 3) prioritized active problems.
+ * - Additionally includes up to `maxBacklogAllowed` (default 2) backlog problems
+ *   (Rank 5: long-overdue, never-reviewed) so they are surfaced alongside active ones
+ *   rather than being permanently suppressed.
+ * - If NO active scheduled revisions exist but user has backlog:
+ *   picks up to `maxBacklogAllowed` prioritized backlog problems to preserve momentum.
  */
 export function getRevisionEmailCandidates<T extends PrioritizableProblem>(
     problems: T[],
     now: Date = new Date(),
     maxActiveAllowed = 3,
+    maxBacklogAllowed = 2,
 ): {
     problemsToSend: T[];
+    backlogToSend: T[];
     totalDueCount: number;
     activeScheduledCount: number;
     backlogCount: number;
@@ -168,17 +171,21 @@ export function getRevisionEmailCandidates<T extends PrioritizableProblem>(
         .map((c) => c.item);
 
     let problemsToSend: T[] = [];
+    let backlogToSend: T[] = [];
 
     if (activeScheduled.length > 0) {
-        // Send all scheduled revisions requiring revision today
+        // Send prioritized active scheduled revisions
         problemsToSend = activeScheduled.slice(0, maxActiveAllowed);
+        // Also surface backlog problems so they aren't permanently hidden
+        backlogToSend = backlog.slice(0, maxBacklogAllowed);
     } else if (backlog.length > 0) {
-        // If no active scheduled revisions, offer up to 2 backlog problems to preserve momentum
-        problemsToSend = backlog.slice(0, 2);
+        // If no active scheduled revisions, offer backlog problems to preserve momentum
+        backlogToSend = backlog.slice(0, maxBacklogAllowed);
     }
 
     return {
         problemsToSend,
+        backlogToSend,
         totalDueCount: problems.length,
         activeScheduledCount: activeScheduled.length,
         backlogCount: backlog.length,
