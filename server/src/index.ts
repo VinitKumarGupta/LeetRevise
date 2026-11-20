@@ -32,9 +32,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-// Lightweight ping to keep Render awake.
-app.get("/api/ping", (_req, res) => {
-    res.json({ pong: true, timestamp: Date.now() });
+// Lightweight ping to keep Render and Database awake.
+app.get("/api/ping", async (_req, res) => {
+    try {
+        await db.$queryRaw`SELECT 1`;
+        res.json({ pong: true, db: "connected", timestamp: Date.now() });
+    } catch (err: any) {
+        res.json({ pong: true, db: "warming", timestamp: Date.now() });
+    }
 });
 
 // health check when something breaks.

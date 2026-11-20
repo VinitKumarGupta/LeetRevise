@@ -10,6 +10,20 @@ const router = Router();
 const userLastReminderDate = new Map<string, string>();
 
 /**
+ * Safely converts Date or date-like value to ISO string without throwing
+ */
+function safeToIsoString(val: any): string {
+    if (!val) return new Date().toISOString();
+    if (val instanceof Date) return isNaN(val.getTime()) ? new Date().toISOString() : val.toISOString();
+    try {
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+    } catch {
+        return new Date().toISOString();
+    }
+}
+
+/**
  * POST /api/notifications/test-email
  * Authenticated endpoint: Sends an immediate test revision digest to the logged-in user.
  */
@@ -29,6 +43,15 @@ router.post(
             }
 
             const now = new Date();
+            const endOfToday = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                23,
+                59,
+                59,
+                999,
+            );
 
             // Find all active problems due today or earlier
             const dueSolvedProblems = await db.solvedProblem.findMany({
@@ -36,7 +59,7 @@ router.post(
                     userId,
                     status: "active",
                     nextReviewAt: {
-                        lte: now,
+                        lte: endOfToday,
                     },
                 },
                 include: {
@@ -73,7 +96,7 @@ router.post(
                 topics: item.problem.topics,
                 currentReviewStage: item.currentReviewStage,
                 isStarred: item.isStarred,
-                solvedAt: item.solvedAt.toISOString(),
+                solvedAt: safeToIsoString(item.solvedAt),
             }));
 
             let isSimulatedPreview = false;
@@ -187,28 +210,50 @@ router.all("/send-due-reminders", async (req, res) => {
         }
 
         const now = new Date();
+        const endOfToday = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            23,
+            59,
+            59,
+            999,
+        );
         const todayDateKey = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
         const force = req.query.force === "true";
 
-        // Fetch users who have active due problems
-        const usersWithDueProblems = await db.user.findMany({
-            include: {
-                solvedProblems: {
-                    where: {
-                        status: "active",
-                        nextReviewAt: {
-                            lte: now,
+        // Fetch users who have active due problems (with retry in case serverless DB connection is cold)
+        const fetchUsersWithDueProblems = () =>
+            db.user.findMany({
+                include: {
+                    solvedProblems: {
+                        where: {
+                            status: "active",
+                            nextReviewAt: {
+                                lte: endOfToday,
+                            },
+                        },
+                        include: {
+                            problem: true,
+                        },
+                        orderBy: {
+                            nextReviewAt: "asc",
                         },
                     },
-                    include: {
-                        problem: true,
-                    },
-                    orderBy: {
-                        nextReviewAt: "asc",
-                    },
                 },
-            },
-        });
+            });
+
+        let usersWithDueProblems;
+        try {
+            usersWithDueProblems = await fetchUsersWithDueProblems();
+        } catch (initialDbError: any) {
+            console.warn(
+                "Initial DB query failed during reminder trigger (possible serverless cold start), retrying after 2s delay...",
+                initialDbError.message,
+            );
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            usersWithDueProblems = await fetchUsersWithDueProblems();
+        }
 
         const appUrl =
             process.env.APP_URL || "https://leetcode-revision-tracker.vercel.app";
@@ -261,7 +306,7 @@ router.all("/send-due-reminders", async (req, res) => {
                 topics: item.problem.topics,
                 currentReviewStage: item.currentReviewStage,
                 isStarred: item.isStarred,
-                solvedAt: item.solvedAt.toISOString(),
+                solvedAt: safeToIsoString(item.solvedAt),
             }));
 
             const result = await emailService.sendRevisionDigest(
