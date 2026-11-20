@@ -20,8 +20,7 @@
   <a href="#core-features">Core Features</a> •
   <a href="#how-it-works">How It Works</a> •
   <a href="#tech-stack">Tech Stack</a> •
-  <a href="#getting-started">Getting Started</a> •
-  <a href="#configuration">Configuration</a> •
+  <a href="#deployment--live-application">Deployment</a> •
   <a href="#api-endpoints--cron">API & Cron</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#license">License</a>
@@ -89,7 +88,7 @@ Problems are categorized into six priority tiers to balance active repetition ag
 
 ```mermaid
 flowchart TD
-    A["Active Due Problems (nextReviewAt <= now)"] --> B["Classify Problem Priority"]
+    A["Active Due Problems (nextReviewAt <= endOfToday)"] --> B["Classify Problem Priority"]
     B --> C["Rank 1-4: Active Scheduled Revisions"]
     B --> D["Rank 5: Long-Overdue Backlog (>7d unreviewed)"]
     
@@ -117,7 +116,7 @@ The daily email selects up to **3 active scheduled problems** plus up to **2 bac
 | :----------------- | :------------------------------------------------------------------------------------- |
 | **Frontend**       | React 19, TypeScript, Vite, Tailwind CSS, TanStack React Query, Recharts, Lucide Icons |
 | **Backend**        | Node.js, Express.js, TypeScript, Zod, Cookie-Parser, CORS                              |
-| **Database & ORM** | PostgreSQL (Neon Serverless Postgres / Supabase), Prisma ORM                           |
+| **Database & ORM** | PostgreSQL (Neon Serverless Postgres), Prisma ORM                                      |
 | **Email Delivery** | Brevo (Sendinblue) Transactional REST API                                              |
 | **Task Scheduler** | cron-job.org HTTP Trigger / External Webhooks                                         |
 | **Authentication** | JWT (JSON Web Tokens), HTTP-Only Secure Cookies, Bcrypt.js                             |
@@ -125,101 +124,15 @@ The daily email selects up to **3 active scheduled problems** plus up to **2 bac
 
 ---
 
-## Getting Started
+## Deployment & Live Application
 
-### Prerequisites
+LeetRevise is deployed and operating as a decoupled cloud-native application:
 
-Ensure you have the following installed:
-
-- **Node.js:** `v18.0.0` or higher ([Download Node.js](https://nodejs.org/))
-- **npm:** `v9.0.0` or higher (packaged with Node.js)
-- **Git:** ([Download Git](https://git-scm.com/))
-- **PostgreSQL Database:** A local instance or hosted provider such as [Neon](https://neon.tech/) or [Supabase](https://supabase.com/)
-
-### Installation
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/VinitKumarGupta/LeetRevise.git
-   cd LeetRevise
-   ```
-
-2. **Install all dependencies across client, server, and root:**
-
-   ```bash
-   npm run install:all
-   ```
-
----
-
-## Configuration
-
-1. **Create the server environment file:**
-
-   Create a `.env` file in the `server` directory (refer to `server/.env.example`):
-
-   ```env
-   # PostgreSQL Connection (supports pooled and direct connection URLs)
-   DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
-   DIRECT_DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
-
-   # Server Settings
-   PORT=5000
-   NODE_ENV="development"
-   JWT_SECRET="your-secure-jwt-secret-key-min-32-chars"
-
-   # Frontend Client URL (for CORS and email redirect links)
-   APP_URL="http://localhost:5173"
-
-   # Brevo (Sendinblue) Transactional Email (Optional for local testing)
-   BREVO_API_KEY="xkeysib-your-brevo-api-key"
-   EMAIL_FROM_ADDRESS="noreply.leetrevise@gmail.com"
-   EMAIL_FROM_NAME="LeetRevise"
-
-   # Secret token to protect the automated cron endpoint
-   CRON_SECRET="your-secure-cron-trigger-token"
-   ```
-
-2. **Generate Prisma Client and push schema:**
-
-   ```bash
-   cd server
-   npx prisma generate
-   npx prisma db push
-   cd ..
-   ```
-
----
-
-## Running the Application
-
-### Development Mode
-
-Run both the Vite frontend and Express backend concurrently:
-
-```bash
-npm run dev
-```
-
-- **Frontend Client:** [http://localhost:5173](http://localhost:5173)
-- **Backend API:** [http://localhost:5000](http://localhost:5000)
-
-### Production Build
-
-```bash
-npm run build
-npm start
-```
-
-### Running Tests
-
-Execute the Jest test suite in the backend:
-
-```bash
-cd server
-npm test
-```
+- **Frontend Web Application:** Hosted on [Vercel](https://vercel.com/) at [https://leetcode-revision-tracker.vercel.app](https://leetcode-revision-tracker.vercel.app)
+- **Backend API Service:** Hosted on [Render](https://render.com/) at `https://leetcode-revision-tracker-api.onrender.com`
+- **Database Layer:** Serverless PostgreSQL hosted on [Neon](https://neon.tech/) with pooled connections
+- **Email Infrastructure:** Transactional digest delivery via [Brevo](https://brevo.com/)
+- **Keep-Alive & Cron Scheduling:** Automated cron triggers managed via [cron-job.org](https://cron-job.org/)
 
 ---
 
@@ -252,7 +165,7 @@ The application exposes a dedicated endpoint to trigger daily reminder emails:
 - **Immediate Test Trigger:** `POST /api/notifications/test-email` (Authenticated user sends test digest to their registered email)
 - **Daily Cron Integration:** Configure a free daily cron on [cron-job.org](https://cron-job.org/) pointing to:
   ```http
-  GET https://your-server.onrender.com/api/notifications/send-due-reminders?secret=your-secure-cron-trigger-token
+  GET https://leetcode-revision-tracker-api.onrender.com/api/notifications/send-due-reminders?secret=your-secure-cron-trigger-token
   ```
 
 ---
