@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -7,17 +7,19 @@ import {
     BarChart3,
     Settings,
     LogOut,
-    Code2,
     BookOpen,
     Sparkles,
     Menu,
     X,
     AlertTriangle,
+    ArrowUpRight,
     Target,
     CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.js";
 import api from "../services/api.js";
+import { Modal } from "./ui.js";
+import { Brand } from "./Brand.js";
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -57,6 +59,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [dailyMessage, setDailyMessage] = useState<string | null>(null);
+    const mainContent = useRef<HTMLElement>(null);
+
+    useLayoutEffect(() => {
+        if (mainContent.current) mainContent.current.scrollTop = 0;
+    }, [location.pathname]);
 
     const { data: analytics } = useQuery({
         queryKey: ["analytics"],
@@ -111,284 +118,173 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         { name: "Settings", path: "/settings", icon: Settings },
     ];
 
+    const goalMet = todayRevisedCount >= 3;
+    const goalPercent = Math.min(100, Math.round((todayRevisedCount / 3) * 100));
+    const GoalIcon = goalMet ? CheckCircle2 : Target;
+
+    const menuToggle = useRef<HTMLButtonElement>(null);
+    const menuClose = useRef<HTMLButtonElement>(null);
+    const closeMenu = () => setMobileMenuOpen(false);
+
+    useEffect(() => {
+        if (!mobileMenuOpen) return;
+
+        menuClose.current?.focus();
+        const desktop = window.matchMedia('(min-width: 768px)');
+        const onResize = () => {
+            if (desktop.matches) closeMenu();
+        };
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                closeMenu();
+                requestAnimationFrame(() => menuToggle.current?.focus());
+            }
+        };
+        desktop.addEventListener('change', onResize);
+        window.addEventListener('keydown', onKeyDown);
+        return () => {
+            desktop.removeEventListener('change', onResize);
+            window.removeEventListener('keydown', onKeyDown);
+        };
+    }, [mobileMenuOpen]);
+
+    const dismissMenu = () => {
+        closeMenu();
+        requestAnimationFrame(() => menuToggle.current?.focus());
+    };
+
     return (
-        <div className="h-[100dvh] w-full flex flex-col md:flex-row bg-bg-dark text-gray-100 overflow-hidden overscroll-none">
-            {/* Mobile Top Navbar */}
-            <header className="md:hidden flex items-center justify-between px-4 py-3 bg-card-dark/90 backdrop-blur-md border-b border-border-dark/80 sticky top-0 z-50 shrink-0">
-                <div className="flex items-center gap-2.5">
-                    <div className="bg-indigo-600 p-1.5 rounded-lg text-white shadow-md shadow-indigo-600/30">
-                        <Code2 className="w-5 h-5" />
-                    </div>
-                    <span className="font-display font-bold text-lg bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                        LeetRevise
-                    </span>
-                </div>
-                <div className="flex items-center gap-3">
-                    {dueCount > 0 && (
-                        <Link
-                            to="/queue"
-                            className="text-amber-400 p-1 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-1 text-xs font-semibold px-2 py-1"
-                            title="Revisions due today!"
-                        >
-                            <AlertTriangle className="w-4 h-4 animate-pulse text-amber-500" />
-                            <span>{dueCount} Due</span>
-                        </Link>
-                    )}
-                    <button
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="p-2 text-gray-300 hover:text-white rounded-xl bg-gray-900/60 border border-border-dark/60 active:scale-95 transition-all"
-                        aria-label="Toggle Navigation Menu"
-                    >
-                        {mobileMenuOpen ? (
-                            <X className="w-5 h-5" />
-                        ) : (
-                            <Menu className="w-5 h-5" />
+        <>
+            <div className="app-shell">
+                <header className="mobile-header" inert={mobileMenuOpen}>
+                    <Brand onClick={closeMenu} />
+                    <div className="flex items-center gap-2">
+                        {dueCount > 0 && (
+                            <Link to="/queue" className="badge" data-tone="medium">
+                                <AlertTriangle aria-hidden="true" /> {dueCount} due
+                            </Link>
                         )}
-                    </button>
-                </div>
-            </header>
-
-            {/* Mobile Sidebar Backdrop Overlay */}
-            {mobileMenuOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden animate-fade-in"
-                    onClick={() => setMobileMenuOpen(false)}
-                />
-            )}
-
-            {/* Sidebar Navigation */}
-            <aside
-                className={`
-        fixed inset-y-0 left-0 z-50 w-72 md:w-64 md:shrink-0 bg-card-dark/98 border-r border-border-dark/60 p-6 flex flex-col justify-between transition-transform duration-300 transform overflow-y-auto
-        md:translate-x-0 md:static md:h-full
-        ${mobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}
-      `}
-            >
-                <div className="flex flex-col gap-6">
-                    {/* Logo */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-600/30">
-                                <Code2 className="w-6 h-6" />
-                            </div>
-                            <span className="font-display font-extrabold text-xl bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
-                                LeetRevise
-                            </span>
-                        </div>
                         <button
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="md:hidden p-1.5 text-gray-400 hover:text-white rounded-lg"
+                            ref={menuToggle}
+                            type="button"
+                            className="icon-button"
+                            aria-label="Open navigation"
+                            aria-expanded={mobileMenuOpen}
+                            aria-controls="workspace-sidebar"
+                            onClick={() => setMobileMenuOpen(true)}
                         >
-                            <X className="w-5 h-5" />
+                            <Menu aria-hidden="true" />
+                        </button>
+                    </div>
+                </header>
+
+                {mobileMenuOpen && <div className="mobile-backdrop" aria-hidden="true" onClick={dismissMenu} />}
+
+                <aside id="workspace-sidebar" className="sidebar" data-open={mobileMenuOpen}>
+                    <div className="sidebar-brand">
+                        <Brand onClick={closeMenu} />
+                        <button
+                            ref={menuClose}
+                            type="button"
+                            className="icon-button mobile-close"
+                            aria-label="Close navigation"
+                            onClick={dismissMenu}
+                        >
+                            <X aria-hidden="true" />
                         </button>
                     </div>
 
-                    {/* Navigation Links */}
-                    <nav className="flex flex-col gap-1.5 mt-2">
-                        {navItems.map((item) => {
-                            const Icon = item.icon;
-                            const isActive = location.pathname === item.path;
-                            const linkContent = (
-                                <>
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <Icon
-                                            className={`w-5 h-5 shrink-0 transition-transform duration-200 ${isActive ? "text-indigo-400" : "group-hover:scale-110"}`}
-                                        />
-                                        <span className="text-sm font-medium whitespace-nowrap truncate">
-                                            {item.name}
-                                        </span>
-                                    </div>
-                                    {item.badge !== undefined && (
-                                        <span
-                                            className={`
-                      text-xs font-extrabold px-2 py-0.5 rounded-full shrink-0 ml-2 shadow-sm
-                      ${item.name === "Revision Queue" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" : "bg-indigo-600 text-white"}
-                    `}
-                                        >
-                                            {item.badge}
-                                        </span>
-                                    )}
-                                </>
-                            );
-                            const className = `
-                    flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group active:scale-98
-                    ${
-                        isActive
-                            ? "bg-indigo-600/20 text-indigo-300 border-l-4 border-indigo-500 font-semibold shadow-sm"
-                            : "text-gray-400 hover:bg-gray-800/50 hover:text-gray-200"
-                    }
-                                    `;
-                            return item.external ? (
-                                <a
-                                    key={item.path}
-                                    href={item.path}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={className}
-                                >
-                                    {linkContent}
+                    <nav className="sidebar-nav" aria-label="Main navigation">
+                        {navItems.map(({ name, path, icon: Icon, badge, external }) =>
+                            external ? (
+                                <a key={path} href={path} target="_blank" rel="noreferrer" onClick={dismissMenu} className="nav-item">
+                                    <Icon aria-hidden="true" />
+                                    <span className="truncate">{name}</span>
+                                    <ArrowUpRight className="nav-external" aria-hidden="true" />
                                 </a>
                             ) : (
                                 <Link
-                                    key={item.path}
-                                    to={item.path}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={className}
+                                    key={path}
+                                    to={path}
+                                    aria-current={location.pathname === path ? 'page' : undefined}
+                                    onClick={closeMenu}
+                                    className="nav-item"
                                 >
-                                    {linkContent}
+                                    <Icon aria-hidden="true" />
+                                    <span className="truncate">{name}</span>
+                                    {badge !== undefined && (
+                                        <span className="badge nav-count" data-tone="medium" aria-label={`${badge} due`}>{badge}</span>
+                                    )}
                                 </Link>
-                            );
-                        })}
+                            ),
+                        )}
                     </nav>
-                </div>
 
-                <div className="flex flex-col gap-4 border-t border-border-dark/60 pt-6 mt-6">
-                    {/* Daily Revision Progress Card */}
-                    <div className="rounded-xl border border-border-dark/60 bg-gray-900/40 p-3 shadow-sm">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
-                                {todayRevisedCount >= 3 ? (
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                                ) : (
-                                    <Target className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                                )}
-                                Daily Goal
-                            </span>
-                            <span className={`text-xs font-bold font-mono ${
-                                todayRevisedCount >= 3 ? "text-emerald-400" : "text-indigo-300"
-                            }`}>
-                                {todayRevisedCount}/3
-                            </span>
-                        </div>
-
-                        {/* Progress Bar Track */}
-                        <div className="w-full bg-gray-800/80 rounded-full h-1.5 overflow-hidden">
-                            <div
-                                className={`h-full rounded-full transition-all duration-700 ease-out ${
-                                    todayRevisedCount >= 3
-                                        ? "bg-emerald-500"
-                                        : "bg-indigo-500"
-                                }`}
-                                style={{
-                                    width: `${Math.min(100, Math.round((todayRevisedCount / 3) * 100))}%`,
-                                }}
-                            />
-                        </div>
-
-                        <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">
-                            <span>
-                                {todayRevisedCount >= 3
-                                    ? "Goal achieved! 🎉"
-                                    : todayRevisedCount === 0
-                                    ? "3 to revise today"
-                                    : `${3 - todayRevisedCount} remaining today`}
-                            </span>
-                            <span className="font-semibold text-gray-400 font-mono">
-                                {Math.min(100, Math.round((todayRevisedCount / 3) * 100))}%
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="mb-2 rounded-xl border border-border-dark/40 bg-gray-900/20 px-3 py-3">
-                        <p className="text-[11px] leading-relaxed italic text-gray-500/80 tracking-wide">
-                            “Mastery isn’t grinding 10 new problems a day; it’s
-                            grinding 3 new problems and revising 3 old ones on
-                            time.”
-                        </p>
-                    </div>
-
-                    {/* User Card & Logout */}
-                    <div className="flex items-center gap-3 p-2 rounded-xl bg-gray-900/40 border border-border-dark/40">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-display font-bold text-white shadow-md text-sm shrink-0">
-                            {user?.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex flex-col min-w-0 flex-1">
-                            <span className="text-xs font-bold truncate text-gray-200">
-                                {user?.name}
-                            </span>
-                            <span className="text-[11px] text-gray-400 truncate">
-                                {user?.email}
-                            </span>
-                        </div>
-                    </div>
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:bg-rose-500/10 hover:text-rose-400 border border-transparent hover:border-rose-500/20 transition-all w-full"
-                    >
-                        <LogOut className="w-4 h-4 text-rose-400" />
-                        <span>Sign Out</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 overscroll-contain">
-                <div className="max-w-6xl mx-auto animate-fade-in pb-12">
-                    {dueCount > 0 && location.pathname === "/dashboard" && (
-                        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-300 shadow-md">
-                            <div className="flex items-center gap-3">
-                                <AlertTriangle className="w-5 h-5 shrink-0 animate-pulse text-amber-400" />
-                                <span className="text-xs sm:text-sm font-medium">
-                                    You have <strong>{dueCount}</strong>{" "}
-                                    LeetCode problem(s) due for spaced
-                                    repetition today!
-                                </span>
-                            </div>
-                            <Link
-                                to="/queue"
-                                className="text-xs bg-amber-500 hover:bg-amber-400 text-bg-dark font-bold px-3.5 py-2 rounded-xl transition-all text-center shrink-0 active:scale-95 shadow-sm"
-                            >
-                                Revise Now
-                            </Link>
-                        </div>
-                    )}
-                    {children}
-                </div>
-            </main>
-
-            {dailyMessage && (
-                <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/50 px-4 pt-20 backdrop-blur-sm animate-fade-in">
-                    <div
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="daily-welcome-title"
-                        className="w-full max-w-md rounded-2xl border border-indigo-400/20 bg-card-dark p-5 shadow-2xl shadow-indigo-950/40"
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="rounded-xl bg-indigo-500/15 p-2 text-indigo-300">
-                                <Sparkles className="h-5 w-5" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <h2
-                                    id="daily-welcome-title"
-                                    className="font-display text-base font-bold text-gray-100"
-                                >
-                                    Welcome back!
+                    <div className="sidebar-bottom">
+                        <section className="goal" aria-labelledby="daily-goal-title">
+                            <div className="goal-title">
+                                <h2 id="daily-goal-title" className="flex items-center gap-2">
+                                    <GoalIcon className={goalMet ? 'text-easy' : 'text-accent'} aria-hidden="true" />
+                                    Daily Goal
                                 </h2>
-                                <p className="mt-2 text-sm leading-relaxed text-gray-300">
-                                    {dailyMessage}
-                                </p>
+                                <span className="tabular-nums text-muted">{todayRevisedCount} / 3</span>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setDailyMessage(null)}
-                                className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-800 hover:text-gray-200"
-                                aria-label="Close daily message"
+                            <div
+                                className="progress-track"
+                                role="progressbar"
+                                aria-labelledby="daily-goal-title"
+                                aria-valuemin={0}
+                                aria-valuemax={3}
+                                aria-valuenow={Math.min(todayRevisedCount, 3)}
                             >
-                                <X className="h-4 w-4" />
-                            </button>
+                                <div className="progress-fill" style={{ width: `${goalPercent}%`, backgroundColor: goalMet ? 'var(--color-easy)' : undefined }} />
+                            </div>
+                            <div className="goal-caption">
+                                <span>{goalMet ? 'Goal achieved' : `${3 - todayRevisedCount} remaining today`}</span>
+                                <span className="tabular-nums">{goalPercent}%</span>
+                            </div>
+                        </section>
+
+                        <blockquote className="sidebar-quote">
+                            “Mastery isn’t grinding 10 new problems a day. It’s grinding 3 new problems and revising 3 old ones on time.”
+                        </blockquote>
+
+                        <div className="sidebar-account">
+                            <div className="avatar" aria-hidden="true">{user?.name.charAt(0).toUpperCase()}</div>
+                            <div className="grid min-w-0 gap-0.5">
+                                <span className="truncate text-xs font-semibold">{user?.name}</span>
+                                <span className="truncate text-[11px] text-muted" title={user?.email}>{user?.email}</span>
+                            </div>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setDailyMessage(null)}
-                            className="mt-4 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
-                        >
-                            Start revising
+                        <button type="button" className="button button-ghost button-small sign-out" onClick={handleLogout}>
+                            <LogOut aria-hidden="true" />
+                            Sign Out
                         </button>
                     </div>
-                </div>
+                </aside>
+
+                <main ref={mainContent} className="app-main" inert={mobileMenuOpen}>
+                    <div className="page-content">{children}</div>
+                </main>
+            </div>
+
+            {dailyMessage && (
+                <Modal onClose={() => setDailyMessage(null)} aria-labelledby="daily-welcome-title" aria-describedby="daily-welcome-description">
+                    <div className="flex items-start gap-3">
+                        <span className="section-icon"><Sparkles aria-hidden="true" /></span>
+                        <div className="min-w-0 flex-1">
+                            <h2 id="daily-welcome-title" className="panel-heading">Welcome back!</h2>
+                            <p id="daily-welcome-description" className="mt-2 text-sm text-muted">{dailyMessage}</p>
+                        </div>
+                        <button type="button" className="icon-button -mr-1 -mt-1" aria-label="Close daily message" onClick={() => setDailyMessage(null)}>
+                            <X aria-hidden="true" />
+                        </button>
+                    </div>
+                    <button type="button" className="button button-primary mt-5 w-full" onClick={() => setDailyMessage(null)} autoFocus>
+                        Start revising
+                    </button>
+                </Modal>
             )}
-        </div>
+        </>
     );
 };

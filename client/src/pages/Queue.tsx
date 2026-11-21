@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import {
     Search,
     Calendar,
-    ChevronDown,
     ChevronRight,
     Play,
     Pause,
@@ -13,6 +12,7 @@ import {
     Star,
 } from "lucide-react";
 import api from "../services/api.js";
+import { DifficultyBadge, Feedback, Modal, PageHeader } from "../components/ui.js";
 
 export const Queue: React.FC = () => {
     const queryClient = useQueryClient();
@@ -22,11 +22,13 @@ export const Queue: React.FC = () => {
     const [difficulty, setDifficulty] = useState("");
     const [status, setStatus] = useState("due"); // default filter to 'due' revisions
     const [sortBy, setSortBy] = useState("priority");
+    const [removeTarget, setRemoveTarget] = useState<{ id: string; title: string } | null>(null);
 
     // Fetch problems list
     const {
         data: queueData,
         isLoading,
+        error,
         refetch,
     } = useQuery({
         queryKey: ["problems", search, difficulty, status, sortBy],
@@ -89,14 +91,6 @@ export const Queue: React.FC = () => {
         },
     });
 
-    const handleDelete = (id: string, title: string) => {
-        if (
-            window.confirm(`Are you sure you want to stop tracking "${title}"?`)
-        ) {
-            deleteMutation.mutate(id);
-        }
-    };
-
     const problems = queueData?.problems || [];
 
     // Formatter for due countdown
@@ -127,36 +121,23 @@ export const Queue: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col gap-6">
-            {/* Header */}
-            <div>
-                <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight text-gray-100 mb-1">
-                    Revision Queue
-                </h1>
-                <p className="text-sm text-gray-400">
-                    Review your solved LeetCode patterns at key spaced
-                    repetition milestones
-                </p>
-            </div>
+        <div className="page-stack">
+            <PageHeader title="Revision Queue" description="Review solved LeetCode problems at each spaced repetition milestone." />
 
-            {/* Filter Toolbar */}
-            <div className="glass-panel p-4 sm:p-5 rounded-2xl border-border-dark/60 shadow-lg flex flex-col gap-4">
-                {/* Top Row: Search & Status Tabs */}
-                <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
-                    {/* Search Input */}
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <section className="panel queue-toolbar" aria-label="Queue filters">
+                <div className="queue-controls">
+                    <div className="queue-search relative">
+                        <Search className="field-icon" aria-hidden="true" />
                         <input
-                            type="text"
+                            type="search"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search title, tags..."
-                            className="w-full bg-gray-900/60 border border-border-dark/50 rounded-xl py-2.5 pl-10 pr-4 text-xs sm:text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                            onChange={(event) => setSearch(event.target.value)}
+                            placeholder="Search problems or topics"
+                            aria-label="Search problems or topics"
+                            className="field field-with-icon"
                         />
                     </div>
-
-                    {/* Status Filter Tabs */}
-                    <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap bg-gray-900/60 rounded-xl p-1 border border-border-dark/40 scrollbar-none">
+                    <div className="segmented queue-filters" role="group" aria-label="Review status">
                         {[
                             { id: "due", label: "Due" },
                             { id: "upcoming", label: "Upcoming" },
@@ -164,301 +145,164 @@ export const Queue: React.FC = () => {
                             { id: "paused", label: "Paused" },
                             { id: "starred", label: "Starred" },
                             { id: "", label: "All" },
-                        ].map((s) => (
-                            <button
-                                key={s.id}
-                                onClick={() => setStatus(s.id)}
-                                className={`
-                  px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all active:scale-95
-                  ${
-                      status === s.id
-                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-bold"
-                          : "text-gray-400 hover:text-gray-200"
-                  }
-                `}
-                            >
-                                {s.label}
+                        ].map(({ id, label }) => (
+                            <button type="button" key={id} onClick={() => setStatus(id)} aria-pressed={status === id} className="segment">
+                                {label}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* Bottom Row: Select Dropdowns */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border-dark/40">
-                    {/* Difficulty Dropdown */}
-                    <div className="relative">
-                        <select
-                            value={difficulty}
-                            onChange={(e) => setDifficulty(e.target.value)}
-                            className="appearance-none w-full bg-gray-900/70 border border-border-dark/70 rounded-xl px-3 py-2.5 pr-9 text-[11px] sm:text-xs text-gray-200 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 shadow-inner shadow-black/20"
-                        >
-                            <option value="">All Difficulties</option>
+                <div className="queue-selects text-xs text-muted">
+                    <label>
+                        Difficulty
+                        <select className="field" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}>
+                            <option value="">All difficulties</option>
                             <option value="Easy">Easy</option>
                             <option value="Medium">Medium</option>
                             <option value="Hard">Hard</option>
                         </select>
-                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    </div>
-
-                    {/* Sort Dropdown */}
-                    <div className="relative">
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="appearance-none w-full bg-gray-900/70 border border-border-dark/70 rounded-xl px-3 py-2.5 pr-9 text-[11px] sm:text-xs text-gray-200 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 shadow-inner shadow-black/20"
-                        >
-                            <option value="priority">
-                                Priority (Scheduled First)
-                            </option>
-                            <option value="due_asc">
-                                Due Date (Oldest First)
-                            </option>
-                            <option value="due_desc">
-                                Due Date (Newest First)
-                            </option>
-                            <option value="date_desc">
-                                Solved Date (Newest First)
-                            </option>
-                            <option value="date_asc">
-                                Solved Date (Oldest First)
-                            </option>
-                            <option value="diff_desc">
-                                Difficulty (Hard First)
-                            </option>
-                            <option value="diff_asc">
-                                Difficulty (Easy First)
-                            </option>
+                    </label>
+                    <label>
+                        Sort by
+                        <select className="field" value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                            <option value="priority">Priority (scheduled first)</option>
+                            <option value="due_asc">Due date (oldest first)</option>
+                            <option value="due_desc">Due date (newest first)</option>
+                            <option value="date_desc">Solved date (newest first)</option>
+                            <option value="date_asc">Solved date (oldest first)</option>
+                            <option value="diff_desc">Difficulty (hard first)</option>
+                            <option value="diff_asc">Difficulty (easy first)</option>
                         </select>
-                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    </div>
+                    </label>
                 </div>
-            </div>
+            </section>
 
-            {/* Main Problems List */}
             {isLoading ? (
-                <div className="flex flex-col gap-3 animate-pulse">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div
-                            key={i}
-                            className="h-24 bg-gray-800/40 rounded-2xl"
-                        ></div>
-                    ))}
+                <div className="grid gap-2.5" aria-busy="true" aria-label="Loading revision queue">
+                    {[1, 2, 3, 4].map((row) => <div key={row} className="skeleton h-24" />)}
+                </div>
+            ) : error ? (
+                <div className="panel empty-state">
+                    <p role="alert">Could not load the revision queue.</p>
+                    <button type="button" className="button button-secondary button-small" onClick={() => refetch()}>Retry</button>
                 </div>
             ) : problems.length === 0 ? (
-                <div className="glass-panel p-8 sm:p-14 rounded-3xl border-border-dark/40 text-center flex flex-col items-center justify-center gap-4">
-                    <Calendar className="w-12 h-12 text-gray-600 opacity-60" />
-                    <div>
-                        <h3 className="font-display font-semibold text-lg text-gray-300 mb-1">
-                            Queue is empty
-                        </h3>
-                        <p className="text-xs sm:text-sm text-gray-500 max-w-sm mx-auto">
-                            {status === "due"
-                                ? "No revisions due right now! Check back later, or review upcoming questions."
-                                : "No tracked problems found matching your active filters."}
-                        </p>
-                    </div>
+                <div className="panel empty-state">
+                    <Calendar aria-hidden="true" />
+                    <h2 className="panel-heading text-ink">Queue is empty</h2>
+                    <p>{status === "due" ? "No revisions are due right now." : "No tracked problems match your filters."}</p>
                     {status === "due" && (
-                        <button
-                            onClick={() => setStatus("")}
-                            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2.5 rounded-xl transition-all"
-                        >
+                        <button type="button" onClick={() => setStatus("")} className="button button-secondary button-small">
                             View All Problems
                         </button>
                     )}
                 </div>
             ) : (
-                <div className="flex flex-col gap-3.5">
+                <ul className="grid gap-2.5" aria-label="Tracked problems">
                     {problems.map((item: any) => {
                         const isOverdue = item.dueStatus === "overdue";
                         const isDueNow = item.dueStatus === "due";
+                        const isPaused = item.status === "paused";
+                        const isScheduled = item.dueStatus !== "completed" && item.dueStatus !== "paused";
+                        const problemPath = `/problem/${item.id}`;
+                        const scheduleAction = isPaused ? "Resume review schedule" : "Pause review schedule";
+                        const ScheduleIcon = isPaused ? Play : Pause;
+                        const starAction = item.isStarred ? "Remove star" : "Mark as starred";
 
                         return (
-                            <div
-                                key={item.id}
-                                className={`glass-panel glass-panel-hover p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 group transition-all ${
-                                    item.isStarred
-                                        ? "border border-amber-400/45 bg-gradient-to-r from-amber-500/[0.06] via-amber-500/[0.02] to-transparent shadow-[0_0_0_1px_rgba(251,191,36,0.12),0_10px_25px_rgba(251,191,36,0.04)]"
-                                        : "border border-border-dark/50"
-                                }`}
-                            >
-                                {/* Problem Info */}
-                                <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                                    <div
-                                        className={`
-                    w-2 h-10 rounded-full shrink-0 mt-0.5
-                    ${item.problem.difficulty === "Easy" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : ""}
-                    ${item.problem.difficulty === "Medium" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]" : ""}
-                    ${item.problem.difficulty === "Hard" ? "bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]" : ""}
-                  `}
-                                    ></div>
-
-                                    <div className="flex flex-col min-w-0 gap-1.5 flex-1">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            {item.isStarred && (
-                                                <span className="inline-flex items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/25 p-1 shadow-[0_0_10px_rgba(251,191,36,0.15)]">
-                                                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
-                                                </span>
-                                            )}
-                                            <Link
-                                                to={`/problem/${item.id}`}
-                                                className="font-display font-bold text-sm sm:text-base text-gray-100 hover:text-indigo-400 transition-colors truncate"
-                                            >
-                                                {item.problem.title}
-                                            </Link>
-                                            <span
-                                                className={`
-                        text-[10px] font-extrabold px-2 py-0.5 rounded shrink-0
-                        ${item.problem.difficulty === "Easy" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : ""}
-                        ${item.problem.difficulty === "Medium" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : ""}
-                        ${item.problem.difficulty === "Hard" ? "bg-rose-500/10 text-rose-400 border border-rose-500/20" : ""}
-                      `}
-                                            >
-                                                {item.problem.difficulty}
-                                            </span>
-                                            {item.status === "paused" && (
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 flex items-center gap-1">
-                                                    <Pause className="w-2.5 h-2.5" />{" "}
-                                                    Paused
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Tags */}
-                                        <div className="flex flex-wrap gap-1">
-                                            {item.problem.topics
-                                                .split(",")
-                                                .map((t: string) => (
-                                                    <span
-                                                        key={t}
-                                                        className="text-[10px] bg-gray-900/60 border border-border-dark/60 text-gray-400 px-2 py-0.5 rounded-md"
-                                                    >
-                                                        {t.trim()}
-                                                    </span>
-                                                ))}
-                                        </div>
+                            <li key={item.id} className="panel queue-card" data-starred={item.isStarred}>
+                                <div className="queue-card-info">
+                                    <div className="queue-card-title">
+                                        <Link to={problemPath}>{item.problem.title}</Link>
+                                        <DifficultyBadge difficulty={item.problem.difficulty} />
+                                        {isPaused && <span className="badge"><Pause aria-hidden="true" /> Paused</span>}
+                                    </div>
+                                    <div className="flex flex-wrap gap-1">
+                                        {item.problem.topics.split(",").map((topic: string) => topic.trim()).filter(Boolean).map((topic: string) => (
+                                            <span key={topic} className="badge">{topic}</span>
+                                        ))}
+                                    </div>
+                                    <div className="text-xs text-muted">
+                                        Stage {item.currentReviewStage + 1} / 6
+                                        <span aria-hidden="true"> · </span>
+                                        <span>Solved <time dateTime={item.solvedAt}>{new Date(item.solvedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</time></span>
                                     </div>
                                 </div>
 
-                                {/* Tracking / SR Meta */}
-                                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 shrink-0 border-t sm:border-t-0 border-border-dark/40 pt-3 sm:pt-0">
-                                    {/* Next Review & Stages */}
-                                    <div className="text-left sm:text-right">
-                                        <div className="flex items-center gap-1.5 sm:justify-end text-xs font-semibold">
-                                            {isOverdue && (
-                                                <span className="text-rose-500 flex items-center gap-1 font-bold animate-pulse">
-                                                    <AlertTriangle className="w-3.5 h-3.5" />{" "}
-                                                    Overdue
-                                                </span>
-                                            )}
-                                            {isDueNow && !isOverdue && (
-                                                <span className="text-amber-500 font-bold">
-                                                    Due Today
-                                                </span>
-                                            )}
-                                            <span
-                                                className={`
-                        ${isOverdue ? "text-rose-400 font-semibold" : ""}
-                        ${isDueNow && !isOverdue ? "text-amber-400 font-semibold" : ""}
-                        ${!isDueNow && !isOverdue ? "text-gray-400" : ""}
-                      `}
-                                            >
-                                                {getRemainingTime(
-                                                    item.nextReviewAt,
-                                                    item.dueStatus,
-                                                )}
+                                <div className="queue-meta">
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                                        {isOverdue || isDueNow ? (
+                                            <span className="badge" data-tone="medium">
+                                                {isOverdue && <AlertTriangle aria-hidden="true" />}
+                                                {isDueNow ? "Due today" : "Overdue"}
                                             </span>
-                                        </div>
-                                        <div className="text-[10px] sm:text-[11px] text-gray-500 mt-0.5">
-                                            Stage {item.currentReviewStage + 1}{" "}
-                                            / 6 • Solved:{" "}
-                                            {new Date(
-                                                item.solvedAt,
-                                            ).toLocaleDateString()}
-                                        </div>
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() =>
-                                                starMutation.mutate({
-                                                    id: item.id,
-                                                    starred: !item.isStarred,
-                                                })
-                                            }
-                                            title={
-                                                item.isStarred
-                                                    ? "Remove star"
-                                                    : "Mark as starred"
-                                            }
-                                            className={`p-2 rounded-xl border transition-all active:scale-95 ${
-                                                item.isStarred
-                                                    ? "bg-amber-500/12 text-amber-300 border-amber-400/50 shadow-[0_0_0_1px_rgba(251,191,36,0.15),0_0_18px_rgba(251,191,36,0.15)] hover:bg-amber-500/18"
-                                                    : "bg-gray-900 text-gray-500 border-border-dark/80 hover:text-amber-400 hover:bg-gray-800"
-                                            }`}
-                                        >
-                                            <Star
-                                                className={`w-3.5 h-3.5 ${item.isStarred ? "fill-amber-400 text-amber-400" : ""}`}
-                                            />
-                                        </button>
-
-                                        {/* Pause / Resume */}
-                                        {item.status === "paused" ? (
-                                            <button
-                                                onClick={() =>
-                                                    statusMutation.mutate({
-                                                        id: item.id,
-                                                        newStatus: "active",
-                                                    })
-                                                }
-                                                title="Resume review schedule"
-                                                className="p-2 rounded-xl bg-gray-900 text-gray-400 hover:text-indigo-400 hover:bg-gray-800 transition-colors border border-border-dark/80 active:scale-95"
-                                            >
-                                                <Play className="w-3.5 h-3.5" />
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() =>
-                                                    statusMutation.mutate({
-                                                        id: item.id,
-                                                        newStatus: "paused",
-                                                    })
-                                                }
-                                                title="Pause review schedule"
-                                                className="p-2 rounded-xl bg-gray-900 text-gray-400 hover:text-amber-500 hover:bg-gray-800 transition-colors border border-border-dark/80 active:scale-95"
-                                            >
-                                                <Pause className="w-3.5 h-3.5" />
-                                            </button>
+                                        ) : null}
+                                        <span>{getRemainingTime(item.nextReviewAt, item.dueStatus)}</span>
+                                        {isScheduled && (
+                                            <time dateTime={item.nextReviewAt}>{new Date(item.nextReviewAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</time>
                                         )}
-
-                                        {/* Delete */}
+                                    </div>
+                                    <div className="queue-card-actions" role="group" aria-label={`Actions for ${item.problem.title}`}>
                                         <button
-                                            onClick={() =>
-                                                handleDelete(
-                                                    item.id,
-                                                    item.problem.title,
-                                                )
-                                            }
-                                            title="Remove tracking"
-                                            className="p-2 rounded-xl bg-gray-900 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors border border-border-dark/80 active:scale-95"
+                                            type="button"
+                                            className="icon-button"
+                                            aria-label="Star problem"
+                                            title={starAction}
+                                            aria-pressed={item.isStarred}
+                                            onClick={() => starMutation.mutate({ id: item.id, starred: !item.isStarred })}
                                         >
-                                            <Trash2 className="w-3.5 h-3.5" />
+                                            <Star aria-hidden="true" className={item.isStarred ? "fill-current" : ""} />
                                         </button>
-
-                                        {/* Open Problem Detail */}
-                                        <Link
-                                            to={`/problem/${item.id}`}
-                                            className="flex items-center gap-1 px-3 py-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white transition-all text-xs font-semibold active:scale-95 border border-indigo-500/20"
+                                        <button
+                                            type="button"
+                                            className="icon-button"
+                                            title={scheduleAction}
+                                            aria-label={scheduleAction}
+                                            onClick={() => statusMutation.mutate({ id: item.id, newStatus: isPaused ? "active" : "paused" })}
                                         >
-                                            <span>Revise</span>
-                                            <ChevronRight className="w-3.5 h-3.5" />
+                                            <ScheduleIcon aria-hidden="true" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="icon-button icon-button-danger"
+                                            title="Remove tracking"
+                                            aria-label="Remove tracking"
+                                            onClick={() => {
+                                                deleteMutation.reset();
+                                                setRemoveTarget({ id: item.id, title: item.problem.title });
+                                            }}
+                                        >
+                                            <Trash2 aria-hidden="true" />
+                                        </button>
+                                        <Link to={problemPath} className="button button-accent button-small">
+                                            Revise <ChevronRight aria-hidden="true" />
                                         </Link>
                                     </div>
                                 </div>
-                            </div>
+                            </li>
                         );
                     })}
-                </div>
+                </ul>
+            )}
+
+            {removeTarget && (
+                <Modal onClose={() => setRemoveTarget(null)} aria-labelledby="remove-heading" aria-describedby="remove-description">
+                    <h2 id="remove-heading" className="panel-heading">Remove problem from queue?</h2>
+                    <p id="remove-description" className="mt-2 break-words text-sm text-muted">Stop tracking {removeTarget.title}.</p>
+                    {deleteMutation.isError && <div className="mt-3"><Feedback tone="error">Could not remove the problem. Try again.</Feedback></div>}
+                    <div className="mt-5 flex flex-wrap justify-end gap-2">
+                        <button type="button" className="button button-secondary" onClick={() => setRemoveTarget(null)} autoFocus>Cancel</button>
+                        <button
+                            type="button"
+                            className="button button-destructive"
+                            disabled={deleteMutation.isPending}
+                            onClick={() => deleteMutation.mutate(removeTarget.id, { onSuccess: () => setRemoveTarget(null) })}
+                        >
+                            {deleteMutation.isPending ? "Removing…" : "Remove Problem"}
+                        </button>
+                    </div>
+                </Modal>
             )}
         </div>
     );

@@ -1,4 +1,5 @@
 import React from "react";
+import { RefreshCw } from "lucide-react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext.js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,7 +13,6 @@ import { Signup } from "./pages/Signup.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Queue } from "./pages/Queue.js";
 import { ProblemDetail } from "./pages/ProblemDetail.js";
-import { SyncAccount } from "./pages/SyncAccount.js";
 import { Analytics } from "./pages/Analytics.js";
 import { Settings } from "./pages/Settings.js";
 
@@ -33,11 +33,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-bg-dark flex items-center justify-center flex-col gap-4">
-                <div className="w-12 h-12 rounded-full border-4 border-indigo-600/30 border-t-indigo-500 animate-spin"></div>
-                <span className="text-xs text-gray-500 font-mono tracking-wider uppercase animate-pulse">
-                    Restoring Session...
-                </span>
+            <div className="grid min-h-dvh place-content-center justify-items-center gap-3 text-sm text-muted" role="status">
+                <RefreshCw className="size-5 animate-spin text-accent" aria-hidden="true" />
+                Restoring session…
             </div>
         );
     }

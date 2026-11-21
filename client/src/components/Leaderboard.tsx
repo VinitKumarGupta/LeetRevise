@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, RefreshCw, Users, HelpCircle } from 'lucide-react';
+import { CircleHelp, RefreshCw, Trophy, Users } from 'lucide-react';
 import api from '../services/api.js';
 
 export interface LeaderboardUser {
@@ -28,232 +28,134 @@ interface LeaderboardResponse {
   };
 }
 
-export const Leaderboard: React.FC = () => {
-  const [timeframe, setTimeframe] = useState<'all-time' | 'month' | 'week'>('all-time');
-  const [sortBy, setSortBy] = useState<'score' | 'solved' | 'streak'>('score');
+const timeframes = [
+  { value: 'all-time', label: 'All Time' },
+  { value: 'month', label: 'Month' },
+  { value: 'week', label: 'Week' },
+] as const;
+
+const metrics = [
+  { value: 'score', label: 'Score' },
+  { value: 'solved', label: 'Solved' },
+  { value: 'streak', label: 'Streak' },
+] as const;
+
+export function Leaderboard() {
+  const [timeframe, setTimeframe] = useState<(typeof timeframes)[number]['value']>('all-time');
+  const [sortBy, setSortBy] = useState<(typeof metrics)[number]['value']>('score');
   const [showFormula, setShowFormula] = useState(false);
 
   const { data, isLoading, isFetching, error, refetch } = useQuery<LeaderboardResponse>({
     queryKey: ['leaderboard', timeframe, sortBy],
     queryFn: async () => {
-      const res = await api.get('/leaderboard', {
-        params: { timeframe, sortBy },
-      });
+      const res = await api.get('/leaderboard', { params: { timeframe, sortBy } });
       return res.data;
     },
     refetchInterval: 30 * 1000,
   });
+  const scoring = data?.scoringModel;
 
-  if (isLoading) {
-    return (
-      <div className="glass-panel p-5 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div className="h-6 w-32 bg-gray-800/60 rounded animate-pulse"></div>
-          <div className="h-6 w-20 bg-gray-800/60 rounded animate-pulse"></div>
+  return (
+    <section className="panel leaderboard-card" aria-labelledby="leader-heading">
+      <header className="panel-header">
+        <span className="section-icon"><Trophy aria-hidden="true" /></span>
+        <h2 id="leader-heading" className="panel-heading">Leaderboard</h2>
+        {scoring && (
+          <span className="tooltip-anchor">
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => setShowFormula(!showFormula)}
+              aria-label="How points are calculated"
+              aria-expanded={showFormula}
+              aria-controls="leader-formula"
+            >
+              <CircleHelp aria-hidden="true" />
+            </button>
+            <span className="tooltip" aria-hidden="true">How points are calculated</span>
+          </span>
+        )}
+        <span className="tooltip-anchor panel-action">
+          <button type="button" className="icon-button" onClick={() => refetch()} disabled={isFetching} aria-label="Refresh leaderboard">
+            <RefreshCw aria-hidden="true" className={isFetching ? 'animate-spin text-accent' : ''} />
+          </button>
+          <span className="tooltip" aria-hidden="true">Refresh leaderboard</span>
+        </span>
+      </header>
+
+      {scoring && (
+        <div id="leader-formula" className="leader-formula" hidden={!showFormula}>
+          <h3 className="font-semibold text-ink">How points are awarded</h3>
+          <ul>
+            <li>Solved problem <strong className="text-accent-bright">+{scoring.solvedProblem}</strong></li>
+            <li>Mastered problem <strong className="text-accent-bright">+{scoring.completedProblem}</strong></li>
+            <li>Spaced review <strong className="text-accent-bright">+{scoring.reviewLogged}</strong></li>
+            <li>Active streak day <strong className="text-accent-bright">+{scoring.streakDay}</strong></li>
+          </ul>
         </div>
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 bg-gray-900/40 rounded-xl animate-pulse"></div>
+      )}
+
+      <div className="leader-controls">
+        <div className="segmented" role="group" aria-label="Leaderboard timeframe">
+          {timeframes.map(({ value, label }) => (
+            <button key={value} type="button" className="segment" aria-pressed={timeframe === value} onClick={() => setTimeframe(value)}>{label}</button>
+          ))}
+        </div>
+        <div className="segmented" role="group" aria-label="Leaderboard sort">
+          {metrics.map(({ value, label }) => (
+            <button key={value} type="button" className="segment" aria-pressed={sortBy === value} onClick={() => setSortBy(value)}>{label}</button>
           ))}
         </div>
       </div>
-    );
-  }
 
-  if (error || !data) {
-    return (
-      <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl text-center py-8">
-        <p className="text-sm text-gray-400 mb-3">Failed to load leaderboard</p>
-        <button
-          onClick={() => refetch()}
-          className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-500 transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  const { entries } = data;
-
-  return (
-    <div className="glass-panel p-5 sm:p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between min-w-0">
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2.5">
-            <Trophy className="w-5 h-5 text-amber-400" />
-            <h2 className="font-display font-bold text-lg text-gray-100">Leaderboard</h2>
-            <button
-              onClick={() => setShowFormula(!showFormula)}
-              title="How points are calculated"
-              className="text-gray-500 hover:text-gray-300 transition-colors"
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
-          </div>
-
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            title="Refresh"
-            className="p-1.5 text-gray-400 hover:text-gray-200 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin text-indigo-400' : ''}`} />
-          </button>
+      {isLoading ? (
+        <div className="grid gap-2 px-4 pb-4" aria-busy="true" aria-label="Loading leaderboard">
+          {[1, 2, 3].map((row) => <div key={row} className="skeleton h-12" />)}
         </div>
-
-        {/* Scoring formula explanation dropdown */}
-        {showFormula && (
-          <div className="mb-4 p-3 bg-gray-900/60 border border-border-dark/60 rounded-xl text-xs text-gray-300 flex flex-col gap-1.5">
-            <p className="font-semibold text-gray-200">How points are awarded:</p>
-            <div className="grid grid-cols-2 gap-1 text-[11px] text-gray-400">
-              <span>• Solved problem: <b className="text-indigo-400">+10 pts</b></span>
-              <span>• Mastered (all stages): <b className="text-emerald-400">+20 pts</b></span>
-              <span>• Spaced review done: <b className="text-amber-400">+5 pts</b></span>
-              <span>• Active streak day: <b className="text-rose-400">+10 pts</b></span>
-            </div>
-          </div>
-        )}
-
-        {/* Filter controls */}
-        <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-border-dark/40 text-xs">
-          {/* Timeframe */}
-          <div className="flex items-center bg-gray-900/50 p-0.5 rounded-lg border border-border-dark/40">
-            <button
-              onClick={() => setTimeframe('all-time')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                timeframe === 'all-time' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'
-              }`}
-            >
-              All Time
-            </button>
-            <button
-              onClick={() => setTimeframe('month')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                timeframe === 'month' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'
-              }`}
-            >
-              Month
-            </button>
-            <button
-              onClick={() => setTimeframe('week')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                timeframe === 'week' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'
-              }`}
-            >
-              Week
-            </button>
-          </div>
-
-          {/* Metric Sort */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setSortBy('score')}
-              className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-colors ${
-                sortBy === 'score' ? 'bg-amber-500/10 text-amber-400' : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              Score
-            </button>
-            <button
-              onClick={() => setSortBy('solved')}
-              className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-colors ${
-                sortBy === 'solved' ? 'bg-indigo-500/10 text-indigo-400' : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              Solved
-            </button>
-            <button
-              onClick={() => setSortBy('streak')}
-              className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-colors ${
-                sortBy === 'streak' ? 'bg-rose-500/10 text-rose-400' : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              Streak
-            </button>
-          </div>
+      ) : error || !data ? (
+        <div className="empty-state">
+          <p role="alert">Could not load the leaderboard.</p>
+          <button type="button" className="button button-secondary button-small" onClick={() => refetch()}>Retry</button>
         </div>
-
-        {/* Empty state */}
-        {entries.length === 0 ? (
-          <div className="py-8 flex flex-col items-center justify-center text-center text-gray-500 gap-2">
-            <Users className="w-6 h-6 opacity-40" />
-            <p className="text-xs">No users ranked yet</p>
+      ) : data.entries.length === 0 ? (
+        <div className="empty-state">
+          <Users aria-hidden="true" />
+          <p>No users ranked yet.</p>
+        </div>
+      ) : (
+        <>
+          <div className="leader-list-head" aria-hidden="true">
+            <span className="text-center">Rank</span>
+            <span className="pl-1">Player</span>
+            <span className="pr-1 text-right">{metrics.find((metric) => metric.value === sortBy)?.label}</span>
           </div>
-        ) : (
-          /* User Rows */
-          <div className="flex flex-col gap-2 max-h-[320px] overflow-y-auto pr-0.5">
-            {entries.map((entry) => {
-              const isFirst = entry.rank === 1;
-              const isSecond = entry.rank === 2;
-              const isThird = entry.rank === 3;
-              const isUser = entry.isCurrentUser;
-
-              return (
-                <div
-                  key={entry.id}
-                  className={`flex items-center justify-between p-2.5 rounded-xl border transition-colors ${
-                    isUser
-                      ? 'bg-indigo-950/20 border-indigo-500/40'
-                      : 'bg-gray-900/30 border-border-dark/30'
-                  }`}
-                >
-                  {/* Left: Rank, Avatar, Name */}
-                  <div className="flex items-center gap-2.5 min-w-0 mr-2">
-                    {/* Rank */}
-                    <div className="w-6 text-center shrink-0">
-                      {isFirst ? (
-                        <span className="text-base" title="1st Place">🥇</span>
-                      ) : isSecond ? (
-                        <span className="text-base" title="2nd Place">🥈</span>
-                      ) : isThird ? (
-                        <span className="text-base" title="3rd Place">🥉</span>
-                      ) : (
-                        <span className="text-xs font-mono text-gray-500">#{entry.rank}</span>
-                      )}
+          <ol className="leader-list" aria-label="Ranked players">
+            {data.entries.map((entry) => (
+              <li key={entry.id} className="leader-row" data-current={entry.isCurrentUser}>
+                <span className="leader-rank tabular-nums" data-leading={entry.rank <= 3} aria-label={`Rank ${entry.rank}`}>{entry.rank}</span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="avatar" aria-hidden="true">{entry.initials}</span>
+                  <div className="grid min-w-0 gap-0.5">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate text-[13px] font-semibold" title={entry.name}>{entry.name}</span>
+                      {entry.isCurrentUser && <span className="badge" data-tone="accent">You</span>}
                     </div>
-
-                    {/* Avatar */}
-                    <div className="w-8 h-8 rounded-lg bg-gray-800 border border-border-dark/60 flex items-center justify-center text-gray-200 font-semibold text-xs shrink-0">
-                      {entry.initials}
-                    </div>
-
-                    {/* Username */}
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold text-gray-200 truncate">
-                          {entry.name}
-                        </span>
-                        {isUser && (
-                          <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-1 rounded">
-                            You
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-gray-500 truncate">
-                        @{entry.username}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Right: Score and stats */}
-                  <div className="text-right shrink-0">
-                    <div className="font-semibold text-xs sm:text-sm text-gray-100">
-                      {sortBy === 'score' && `${entry.score.toLocaleString()} pts`}
-                      {sortBy === 'solved' && `${entry.solvedCount} solved`}
-                      {sortBy === 'streak' && `${entry.streak}d streak`}
-                    </div>
-                    <div className="text-[10px] text-gray-500">
-                      {entry.solvedCount} solved • {entry.streak}d streak
-                    </div>
+                    <span className="truncate text-[11px] text-muted" title={`@${entry.username}`}>@{entry.username}</span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
+                <div className="text-right tabular-nums">
+                  <div className="text-[13px] font-semibold">
+                    {sortBy === 'score' && `${entry.score.toLocaleString()} pts`}
+                    {sortBy === 'solved' && `${entry.solvedCount} solved`}
+                    {sortBy === 'streak' && `${entry.streak}d streak`}
+                  </div>
+                  <div className="text-[11px] text-muted">{entry.solvedCount} solved · {entry.streak}d streak</div>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+    </section>
   );
-};
+}

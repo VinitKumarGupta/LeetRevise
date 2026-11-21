@@ -6,14 +6,13 @@ import {
   User,
   Clock,
   Save,
-  CheckCircle,
-  HelpCircle,
   UserPlus,
   Plus,
-  AlertCircle,
+  Link2,
   RefreshCw,
 } from 'lucide-react';
 import api from '../services/api.js';
+import { Feedback, PageHeader } from '../components/ui.js';
 
 export const Settings: React.FC = () => {
   const queryClient = useQueryClient();
@@ -192,293 +191,198 @@ export const Settings: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl">
-      {/* Header */}
-      <div>
-        <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight text-gray-100 mb-1">
-          Settings
-        </h1>
-        <p className="text-sm text-gray-400">
-          Manage your account, linked LeetCode profile, and scheduling preferences.
-        </p>
-      </div>
+    <div className="page-stack settings-page">
+      <PageHeader title="Settings" description="Manage your account, LeetCode connection, and revision schedule." />
 
-      {/* ── 1. Link Account ──────────────────────────────────────────────── */}
-      <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-        <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2 border-b border-border-dark/60 pb-3">
-          <UserPlus className="w-5 h-5 text-indigo-400" />
-          <span>Link Account</span>
-        </h2>
-        <p className="text-xs text-gray-400">
-          Enter your public LeetCode username to enable problem syncing. Your submissions list must be public.
-        </p>
-
-        {linkSuccess && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-            <CheckCircle className="w-4 h-4" />
-            LeetCode username saved successfully.
-          </div>
-        )}
-        {linkError && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
-            {linkError}
-          </div>
-        )}
-
-        <form onSubmit={handleLinkSubmit} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="LeetCode Username"
-            className="flex-1 bg-gray-900/60 border border-border-dark/60 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={isLinking}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 shrink-0"
-          >
-            {isLinking ? 'Saving...' : 'Save Username'}
-          </button>
-        </form>
-
-        {user?.leetcodeUsername && (
-          <p className="text-xs text-gray-500">
-            Currently linked: <span className="text-indigo-400 font-semibold">@{user.leetcodeUsername}</span>
-          </p>
-        )}
-      </div>
-
-      {/* ── 2. Manual Import ─────────────────────────────────────────────── */}
-      <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-        <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2 border-b border-border-dark/60 pb-3">
-          <Plus className="w-5 h-5 text-indigo-400" />
-          <span>Manual Import</span>
-        </h2>
-        <p className="text-xs text-gray-500">
-          If auto-sync doesn't pick up a problem, add it manually using its URL or slug.
-        </p>
-
-        {manualMessage && (
-          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-            {manualMessage}
-          </div>
-        )}
-        {manualError && (
-          <div className="flex gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>{manualError}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleManualSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              LeetCode URL or Problem Slug
-            </label>
-            <input
-              type="text"
-              required
-              value={manualSlug}
-              onChange={(e) => setManualSlug(e.target.value)}
-              placeholder="e.g. two-sum or full URL"
-              className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
-            />
-          </div>
-
-          {/* Extra fields shown only if LeetCode API fetch fails */}
-          {needsManualDetails && (
-            <div className="border-t border-border-dark pt-4 flex flex-col gap-4">
-              <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-300 text-[11px] leading-relaxed">
-                <strong>Note:</strong> We couldn't fetch details automatically. Please fill them in manually.
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Problem Title</label>
-                <input
-                  type="text"
-                  required
-                  value={manualTitle}
-                  onChange={(e) => setManualTitle(e.target.value)}
-                  placeholder="e.g. Two Sum"
-                  className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Difficulty</label>
-                <select
-                  value={manualDifficulty}
-                  onChange={(e) => setManualDifficulty(e.target.value as any)}
-                  className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tags / Topics (comma-separated)</label>
-                <input
-                  type="text"
-                  value={manualTopics}
-                  onChange={(e) => setManualTopics(e.target.value)}
-                  placeholder="e.g. Array, Hash Table"
-                  className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">LeetCode URL (optional)</label>
-                <input
-                  type="url"
-                  value={manualUrl}
-                  onChange={(e) => setManualUrl(e.target.value)}
-                  placeholder="https://leetcode.com/problems/..."
-                  className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Solve Date</label>
-                <input
-                  type="date"
-                  required
-                  value={manualSolvedAt}
-                  onChange={(e) => setManualSolvedAt(e.target.value)}
-                  className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
+      <div className="settings-sections">
+        <section className="panel settings-section" aria-labelledby="link-heading">
+          <header>
+            <span className="section-icon"><UserPlus aria-hidden="true" /></span>
+            <div>
+              <h2 id="link-heading" className="panel-heading">Link Account</h2>
+              <p>Connect your LeetCode profile to sync solved problems.</p>
             </div>
-          )}
+          </header>
 
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={manualAddMutation.isPending}
-              className="flex-1 bg-gray-900 hover:bg-gray-800 border border-border-dark text-gray-200 font-semibold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 active:scale-98 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${manualAddMutation.isPending ? 'animate-spin' : ''}`} />
-              {manualAddMutation.isPending ? 'Processing...' : needsManualDetails ? 'Save Problem' : 'Verify & Add'}
-            </button>
-            {needsManualDetails && (
-              <button
-                type="button"
-                onClick={() => { setNeedsManualDetails(false); setManualError(null); }}
-                className="px-4 text-xs text-gray-500 hover:text-gray-400 transition-colors"
-              >
-                Cancel
-              </button>
+          <div className="settings-content">
+            {user?.leetcodeUsername && (
+              <div className="settings-status">
+                <span className="badge" data-tone="easy"><Link2 aria-hidden="true" /> Linked</span>
+                <b>@{user.leetcodeUsername}</b>
+              </div>
             )}
+            <form onSubmit={handleLinkSubmit} className="settings-form" aria-busy={isLinking}>
+              <div>
+                <div className="form-row">
+                  <div className="form-field">
+                    <label htmlFor="leetcode-username" className="field-label">LeetCode username</label>
+                    <input
+                      id="leetcode-username"
+                      type="text"
+                      className="field"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Your public username"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      aria-describedby="link-help"
+                    />
+                  </div>
+                  <button type="submit" className="button button-primary" disabled={isLinking}>
+                    {isLinking && <RefreshCw aria-hidden="true" className="animate-spin" />}
+                    {isLinking ? 'Saving…' : 'Save Username'}
+                  </button>
+                </div>
+                <p id="link-help" className="field-help">Your LeetCode submissions list must be public.</p>
+              </div>
+            </form>
+            {linkSuccess && <Feedback tone="success">LeetCode username saved.</Feedback>}
+            {linkError && <Feedback tone="error">{linkError}</Feedback>}
           </div>
-        </form>
-      </div>
+        </section>
 
-      {/* ── 3. Profile Settings (Full Name only) ─────────────────────────── */}
-      <form onSubmit={handleProfileSubmit} className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-        <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2 border-b border-border-dark/60 pb-3">
-          <User className="w-5 h-5 text-indigo-400" />
-          <span>Profile Settings</span>
-        </h2>
-
-        {profileSuccess && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-            <CheckCircle className="w-4 h-4" />
-            Name updated successfully.
-          </div>
-        )}
-        {profileError && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
-            {profileError}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Full Name</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Full Name"
-            className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={profileMutation.isPending}
-          className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 self-start px-5"
-        >
-          <Save className="w-3.5 h-3.5" />
-          {profileMutation.isPending ? 'Saving...' : 'Save Name'}
-        </button>
-      </form>
-
-      {/* ── 4. Locale & Scheduling ───────────────────────────────────────── */}
-      <form onSubmit={handleLocaleSubmit} className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-        <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2 border-b border-border-dark/60 pb-3">
-          <Globe className="w-5 h-5 text-indigo-400" />
-          <span>Locale & Scheduling</span>
-        </h2>
-
-        {localeSuccess && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-            <CheckCircle className="w-4 h-4" />
-            Locale settings saved.
-          </div>
-        )}
-        {localeError && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
-            {localeError}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Timezone</label>
-            <select
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              className="bg-gray-900/60 border border-border-dark/60 rounded-xl px-3 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-indigo-500"
-            >
-              {timezones.map((tz) => (
-                <option key={tz} value={tz}>{tz}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
-              <span>Daily Revision Alert Time</span>
-              <span title="We check for due revisions at this time daily" className="text-gray-600 hover:text-gray-400 cursor-help">
-                <HelpCircle className="w-3.5 h-3.5" />
-              </span>
-            </label>
-            <div className="relative">
-              <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                required
-                value={reminderTime}
-                onChange={(e) => setReminderTime(e.target.value)}
-                placeholder="e.g. 09:00"
-                className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl py-2.5 pl-10 pr-4 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-              />
+        <section className="panel settings-section" aria-labelledby="import-heading">
+          <header>
+            <span className="section-icon"><Plus aria-hidden="true" /></span>
+            <div>
+              <h2 id="import-heading" className="panel-heading">Manual Import</h2>
+              <p>Add a solved problem that didn’t come through on a sync.</p>
             </div>
-          </div>
-        </div>
+          </header>
 
-        <button
-          type="submit"
-          disabled={localeMutation.isPending}
-          className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 self-start px-5"
-        >
-          <Save className="w-3.5 h-3.5" />
-          {localeMutation.isPending ? 'Saving...' : 'Save Locale'}
-        </button>
-      </form>
+          <div className="settings-content">
+            <form onSubmit={handleManualSubmit} className="settings-form" aria-busy={manualAddMutation.isPending}>
+              <div className="form-row">
+                <div className="form-field">
+                  <label htmlFor="manual-slug" className="field-label">LeetCode URL or problem slug</label>
+                  <input
+                    id="manual-slug"
+                    type="text"
+                    required
+                    className="field"
+                    value={manualSlug}
+                    onChange={(e) => setManualSlug(e.target.value)}
+                    placeholder="e.g. two-sum or full URL"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                  />
+                </div>
+                {!needsManualDetails && (
+                  <button type="submit" className="button button-secondary" disabled={manualAddMutation.isPending}>
+                    {manualAddMutation.isPending ? <RefreshCw aria-hidden="true" className="animate-spin" /> : <Plus aria-hidden="true" />}
+                    {manualAddMutation.isPending ? 'Verifying…' : 'Verify & Add'}
+                  </button>
+                )}
+              </div>
+
+              {needsManualDetails && (
+                <div className="settings-form settings-extra">
+                  {manualError && <Feedback tone="warning">{manualError}</Feedback>}
+                  <div className="form-grid">
+                    <div>
+                      <label htmlFor="manual-title" className="field-label">Problem title</label>
+                      <input id="manual-title" type="text" required className="field" value={manualTitle} onChange={(e) => setManualTitle(e.target.value)} placeholder="e.g. Two Sum" />
+                    </div>
+                    <div>
+                      <label htmlFor="manual-difficulty" className="field-label">Difficulty</label>
+                      <select id="manual-difficulty" className="field" value={manualDifficulty} onChange={(e) => setManualDifficulty(e.target.value as typeof manualDifficulty)}>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="manual-topics" className="field-label">Topics (comma-separated)</label>
+                      <input id="manual-topics" type="text" className="field" value={manualTopics} onChange={(e) => setManualTopics(e.target.value)} placeholder="e.g. Array, Hash Table" />
+                    </div>
+                    <div>
+                      <label htmlFor="manual-url" className="field-label">LeetCode URL (optional)</label>
+                      <input id="manual-url" type="url" className="field" value={manualUrl} onChange={(e) => setManualUrl(e.target.value)} placeholder="https://leetcode.com/problems/…" />
+                    </div>
+                    <div>
+                      <label htmlFor="manual-date" className="field-label">Solve date</label>
+                      <input id="manual-date" type="date" required className="field" value={manualSolvedAt} onChange={(e) => setManualSolvedAt(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="settings-actions">
+                    <button type="submit" className="button button-secondary" disabled={manualAddMutation.isPending}>
+                      {manualAddMutation.isPending ? <RefreshCw aria-hidden="true" className="animate-spin" /> : <Save aria-hidden="true" />}
+                      {manualAddMutation.isPending ? 'Saving…' : 'Save Problem'}
+                    </button>
+                    <button type="button" className="button button-ghost" onClick={() => { setNeedsManualDetails(false); setManualError(null); }}>Cancel</button>
+                  </div>
+                </div>
+              )}
+            </form>
+            {manualMessage && <Feedback tone="success">{manualMessage}</Feedback>}
+            {manualError && !needsManualDetails && <Feedback tone="error">{manualError}</Feedback>}
+          </div>
+        </section>
+
+        <section className="panel settings-section" aria-labelledby="profile-heading">
+          <header>
+            <span className="section-icon"><User aria-hidden="true" /></span>
+            <div>
+              <h2 id="profile-heading" className="panel-heading">Profile Settings</h2>
+              <p>Update the name shown on your profile and the leaderboard.</p>
+            </div>
+          </header>
+
+          <div className="settings-content">
+            <form onSubmit={handleProfileSubmit} className="settings-form" aria-busy={profileMutation.isPending}>
+              <div className="form-row">
+                <div className="form-field">
+                  <label htmlFor="profile-name" className="field-label">Full name</label>
+                  <input id="profile-name" type="text" required autoComplete="name" className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" />
+                </div>
+                <button type="submit" className="button button-secondary" disabled={profileMutation.isPending}>
+                  <Save aria-hidden="true" /> {profileMutation.isPending ? 'Saving…' : 'Save Name'}
+                </button>
+              </div>
+            </form>
+            {profileSuccess && <Feedback tone="success">Name updated.</Feedback>}
+            {profileError && <Feedback tone="error">{profileError}</Feedback>}
+          </div>
+        </section>
+
+        <section className="panel settings-section" aria-labelledby="locale-heading">
+          <header>
+            <span className="section-icon"><Globe aria-hidden="true" /></span>
+            <div>
+              <h2 id="locale-heading" className="panel-heading">Locale &amp; Scheduling</h2>
+              <p>Set your timezone and choose when to receive revision reminders.</p>
+            </div>
+          </header>
+
+          <div className="settings-content">
+            <form onSubmit={handleLocaleSubmit} className="settings-form" aria-busy={localeMutation.isPending}>
+              <div className="form-grid">
+                <div>
+                  <label htmlFor="schedule-timezone" className="field-label">Timezone</label>
+                  <select id="schedule-timezone" className="field" value={timezone} onChange={(e) => setTimezone(e.target.value)}>
+                    {timezones.map((tz) => <option key={tz} value={tz}>{tz}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="schedule-time" className="field-label">Daily revision alert time</label>
+                  <div className="relative">
+                    <Clock className="field-icon" aria-hidden="true" />
+                    <input id="schedule-time" type="text" required className="field field-with-icon" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} placeholder="e.g. 09:00" aria-describedby="schedule-help" aria-invalid={Boolean(localeError)} />
+                  </div>
+                  <p id="schedule-help" className="field-help">Use 24-hour time in HH:MM format.</p>
+                </div>
+              </div>
+              <div className="settings-actions">
+                <button type="submit" className="button button-secondary" disabled={localeMutation.isPending}>
+                  <Save aria-hidden="true" /> {localeMutation.isPending ? 'Saving…' : 'Save Locale'}
+                </button>
+              </div>
+            </form>
+            {localeSuccess && <Feedback tone="success">Locale settings saved.</Feedback>}
+            {localeError && <Feedback tone="error">{localeError}</Feedback>}
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

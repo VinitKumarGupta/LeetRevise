@@ -1,302 +1,244 @@
-import React from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { 
-  Flame, 
-  RefreshCw, 
-  TrendingUp, 
-  ChevronRight,
-  HelpCircle
-} from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, ChevronRight, Flame, History, Layers3, RefreshCw } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 import api from '../services/api.js';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { Leaderboard } from '../components/Leaderboard.js';
+import { DifficultyBadge, Feedback, PageHeader } from '../components/ui.js';
 
-export const Dashboard: React.FC = () => {
+interface RecentProblem {
+  id: string;
+  title: string;
+  difficulty: string;
+  solvedAt: string;
+}
+
+interface DashboardData {
+  summary: { streak: number; maxStreak: number; dueCount: number };
+  difficulty: { easy: number; medium: number; hard: number };
+  lastSync: { success: boolean; syncedAt: string; newProblemsCount: number } | null;
+  solvedPerWeek: { weekStart: string; weekRange: string; count: number }[];
+  latestProblems: RecentProblem[];
+}
+
+const difficulties = ['easy', 'medium', 'hard'] as const;
+const reviewDate = (date: string) => new Date(date).toLocaleDateString(undefined, { dateStyle: 'medium' });
+
+export function Dashboard() {
   const queryClient = useQueryClient();
+  const [syncFeedback, setSyncFeedback] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
 
-  // 1. Fetch Analytics data
-  const { data: analytics, isLoading, error } = useQuery({
+  const { data: analytics, isLoading, error } = useQuery<DashboardData>({
     queryKey: ['analytics'],
     queryFn: async () => {
       const res = await api.get('/analytics');
       return res.data;
     },
-    refetchInterval: 30 * 1000, // refresh every 30 seconds
+    refetchInterval: 30 * 1000,
   });
 
-  // 2. Mutation to trigger manual sync
   const syncMutation = useMutation({
     mutationFn: async () => {
+      setSyncFeedback(null);
       const res = await api.post('/sync');
       return res.data;
     },
     onSuccess: (data) => {
-      // Invalidate queries to reload data
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
       queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
-      alert(`Sync successful! Imported ${data.newProblemsCount} new problem(s).`);
+      setSyncFeedback({
+        tone: 'success',
+        message: `Sync successful. Imported ${data.newProblemsCount} new ${data.newProblemsCount === 1 ? 'problem' : 'problems'}.`,
+      });
     },
     onError: (err: any) => {
-      alert(err.response?.data?.message || 'Sync failed. Check username configuration.');
+      setSyncFeedback({ tone: 'error', message: err.response?.data?.message || 'Sync failed. Check username configuration.' });
     },
   });
 
+  const title = 'Dashboard';
+  const description = 'See what’s due and keep your practice going.';
+
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6 animate-pulse">
-        <div className="h-10 bg-gray-800/60 rounded-xl w-48"></div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-80 bg-gray-800/60 rounded-2xl"></div>
-          <div className="h-80 bg-gray-800/60 rounded-2xl"></div>
+      <div className="page-stack" aria-busy="true">
+        <PageHeader title={title} description={description} />
+        <div className="skeleton h-13" />
+        <div className="dashboard-grid">
+          <div className="skeleton h-88" />
+          <div className="skeleton h-88" />
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !analytics) {
     return (
-      <div className="p-8 rounded-3xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-center">
-        <p className="font-semibold mb-2">Error loading dashboard</p>
-        <p className="text-sm">Please refresh the page or sign in again.</p>
+      <div className="page-stack">
+        <PageHeader title={title} description={description} />
+        <Feedback tone="error">Could not load the dashboard. Refresh the page or sign in again.</Feedback>
       </div>
     );
   }
 
   const { summary, difficulty, lastSync, solvedPerWeek, latestProblems } = analytics;
-
-  // Custom tooltips for Recharts
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-card-dark border border-border-dark p-3 rounded-xl shadow-xl text-xs">
-          <p className="text-gray-400 font-medium">Week: {payload[0].payload.weekRange}</p>
-          <p className="text-indigo-400 font-bold mt-1">Solved: {payload[0].value} problems</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const totalDiff = difficulty.easy + difficulty.medium + difficulty.hard;
-  const getPercentage = (val: number) => {
-    if (totalDiff === 0) return 0;
-    return Math.round((val / totalDiff) * 100);
-  };
+  const total = difficulty.easy + difficulty.medium + difficulty.hard;
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Header section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-gray-100 mb-1">
-            Dashboard
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-400">
-            Monitor revision streaks, completion rates, and queue stats
-          </p>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Streak indicator beside Sync button */}
-          <div 
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs sm:text-sm font-semibold shrink-0" 
-            title={`Current Streak: ${summary.streak} days • Best: ${summary.maxStreak} days`}
-          >
-            <Flame className="w-4 h-4 text-amber-500 fill-amber-500/30" />
-            <span>{summary.streak} <span className="text-xs font-normal text-amber-300/80">days streak</span></span>
-            {summary.maxStreak > 0 && (
-              <span className="text-[11px] text-gray-500 font-normal hidden md:inline">(Best: {summary.maxStreak}d)</span>
-            )}
-          </div>
-
-          {lastSync && (
-            <div className="text-right hidden sm:block">
-              <p className="text-[11px] text-gray-500">Last Synced Profile</p>
-              <p className={`text-xs font-medium ${lastSync.success ? 'text-gray-300' : 'text-rose-400'}`}>
-                {lastSync.success 
-                  ? `${new Date(lastSync.syncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${lastSync.newProblemsCount} new)` 
-                  : 'Sync failed'}
-              </p>
+    <div className="page-stack">
+      <div className="dashboard-hero">
+        <PageHeader
+          title={title}
+          description={description}
+          actions={
+            <div className="dashboard-actions">
+              <div className="streak">
+                <Flame aria-hidden="true" />
+                <div>
+                  <span className="streak-value tabular-nums">{summary.streak} {summary.streak === 1 ? 'day' : 'days'} streak</span>
+                  {summary.maxStreak > 0 && <span className="streak-best">Best {summary.maxStreak}d</span>}
+                </div>
+              </div>
+              {lastSync && (
+                <div className="sync-status">
+                  <span className="sync-label">Last synced</span>
+                  <span className="sync-value" data-failed={!lastSync.success}>
+                    {lastSync.success
+                      ? `${new Date(lastSync.syncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${lastSync.newProblemsCount} new`
+                      : 'Sync failed'}
+                  </span>
+                </div>
+              )}
+              <button type="button" className="button button-primary" onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
+                <RefreshCw aria-hidden="true" className={syncMutation.isPending ? 'animate-spin' : ''} />
+                {syncMutation.isPending ? 'Syncing…' : 'Sync Now'}
+              </button>
             </div>
-          )}
-          <button
-            onClick={() => syncMutation.mutate()}
-            disabled={syncMutation.isPending}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white transition-all shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/20 active:scale-95 w-full sm:w-auto"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-            <span>{syncMutation.isPending ? 'Syncing...' : 'Sync Now'}</span>
-          </button>
-        </div>
+          }
+        />
+        <img className="dashboard-art" src="/study-buddy.jpg" width="960" height="720" alt="" />
       </div>
 
-      {/* Top Section: Leaderboard & Recent Activity (Prominently visible above the fold) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Real-time Community Leaderboard */}
+      {summary.dueCount > 0 && (
+        <section className="revision-reminder" aria-label="Revision reminder">
+          <div>
+            <AlertTriangle aria-hidden="true" />
+            <p><strong>{summary.dueCount} {summary.dueCount === 1 ? 'problem' : 'problems'} due</strong> for review today</p>
+          </div>
+          <Link to="/queue" className="button button-small reminder-action">
+            Revise Now <ArrowRight aria-hidden="true" />
+          </Link>
+        </section>
+      )}
+
+      <div className="dashboard-grid">
         <Leaderboard />
 
-        {/* Latest Tracked Problems */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between">
-          <div>
-            <h2 className="font-display font-bold text-lg text-gray-200 mb-5">
-              Recently Solved & Synced
-            </h2>
-            
-            {latestProblems.length === 0 ? (
-              <div className="py-12 text-center text-gray-500 text-sm">
-                No problems tracked yet. Link your LeetCode username and click "Sync Now".
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {latestProblems.map((prob: any) => (
-                  <Link 
-                    key={prob.id}
-                    to={`/problem/${prob.id}`} 
-                    className="flex justify-between items-center p-3 rounded-xl bg-gray-900/30 border border-border-dark/30 hover:border-indigo-500/30 hover:bg-gray-800/20 transition-all group"
-                  >
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-semibold text-gray-200 truncate group-hover:text-indigo-400 transition-colors">
-                        {prob.title}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        Solved: {new Date(prob.solvedAt).toLocaleDateString()}
-                      </span>
+        <section className="panel recent-card" aria-labelledby="recent-heading">
+          <header className="panel-header">
+            <span className="section-icon"><History aria-hidden="true" /></span>
+            <h2 id="recent-heading" className="panel-heading">Recently Solved &amp; Synced</h2>
+          </header>
+          {latestProblems.length === 0 ? (
+            <div className="empty-state">
+              <History aria-hidden="true" />
+              <p>No problems tracked yet.</p>
+              <p><Link to="/settings" className="text-accent-bright underline underline-offset-3">Link your LeetCode account</Link> and run a sync to get started.</p>
+            </div>
+          ) : (
+            <ul className="activity-list">
+              {latestProblems.map((problem) => (
+                <li key={problem.id}>
+                  <Link to={`/problem/${problem.id}`} className="activity-row">
+                    <div className="grid min-w-0 gap-0.5">
+                      <span className="truncate text-sm font-semibold" title={problem.title}>{problem.title}</span>
+                      <time className="text-xs text-muted" dateTime={problem.solvedAt}>{reviewDate(problem.solvedAt)}</time>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className={`
-                        text-xs font-semibold px-2 py-0.5 rounded
-                        ${prob.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : ''}
-                        ${prob.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : ''}
-                        ${prob.difficulty === 'Hard' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : ''}
-                      `}>
-                        {prob.difficulty}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-gray-600 group-hover:translate-x-0.5 transition-transform" />
+                    <div className="flex shrink-0 items-center gap-2">
+                      <DifficultyBadge difficulty={problem.difficulty} />
+                      <ChevronRight className="activity-arrow size-4" aria-hidden="true" />
                     </div>
                   </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
 
-      {/* Secondary Section: Charts & Analytics (Shifted below top activity) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Weekly Chart */}
-        <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border-border-dark/60 flex flex-col justify-between shadow-xl min-w-0">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-indigo-400" />
-              <h2 className="font-display font-bold text-lg text-gray-200">Solve Consistency</h2>
-            </div>
-            <span className="text-xs text-gray-500">Last 6 weeks</span>
-          </div>
-          
-          <div className="h-64 w-full">
-            {totalDiff === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-gray-500 gap-2 border border-dashed border-border-dark/60 rounded-xl">
-                <HelpCircle className="w-8 h-8 opacity-40" />
-                <span className="text-sm">No submissions tracked yet</span>
-              </div>
+      <div className="dashboard-grid dashboard-charts">
+        <section className="panel" aria-labelledby="consistency-heading">
+          <header className="panel-header">
+            <span className="section-icon"><Activity aria-hidden="true" /></span>
+            <h2 id="consistency-heading" className="panel-heading">Solve Consistency</h2>
+            <span className="panel-action text-xs text-muted">Last 6 weeks</span>
+          </header>
+          <div className="chart-body h-64">
+            {total === 0 ? (
+              <div className="empty-state"><Activity aria-hidden="true" /><p>No submissions tracked yet.</p></div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={solvedPerWeek} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <XAxis 
-                    dataKey="weekStart" 
-                    stroke="#4b5563" 
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
+                <BarChart data={solvedPerWeek} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
+                  <CartesianGrid vertical={false} stroke="var(--color-line)" strokeDasharray="3 4" />
+                  <XAxis dataKey="weekStart" stroke="var(--color-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis width={28} stroke="var(--color-muted)" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip
+                    content={({ active, payload }) => active && payload?.length ? (
+                      <div className="chart-tooltip">
+                        <p className="text-muted">{payload[0].payload.weekRange}</p>
+                        <p className="font-semibold">{payload[0].value} solved</p>
+                      </div>
+                    ) : null}
+                    cursor={{ fill: 'var(--accent-soft)' }}
                   />
-                  <YAxis 
-                    stroke="#4b5563" 
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    allowDecimals={false}
-                  />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }} />
-                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                    {solvedPerWeek.map((entry: any, index: number) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={index === solvedPerWeek.length - 1 ? '#6366f1' : '#4f46e5'} 
-                        fillOpacity={index === solvedPerWeek.length - 1 ? 1 : 0.6}
-                      />
+                  <Bar name="Problems solved" dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={52} isAnimationActive={false}>
+                    {solvedPerWeek.map(({ weekStart }, index) => (
+                      <Cell key={weekStart} fill="var(--color-chart-accent)" fillOpacity={index === solvedPerWeek.length - 1 ? 1 : .53} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Right Column: Difficulty Breakdown */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 flex flex-col justify-between shadow-xl min-w-0">
-          <div>
-            <h2 className="font-display font-bold text-lg text-gray-200 mb-6 flex items-center gap-2">
-              <span>Difficulty Allocation</span>
-            </h2>
-
-            {totalDiff === 0 ? (
-              <div className="h-60 flex flex-col items-center justify-center text-gray-500 gap-2 border border-dashed border-border-dark/60 rounded-xl">
-                <HelpCircle className="w-8 h-8 opacity-40" />
-                <span className="text-sm">Sync your account to see profile allocation</span>
-              </div>
+        <section className="panel flex flex-col" aria-labelledby="difficulty-heading">
+          <header className="panel-header">
+            <span className="section-icon"><Layers3 aria-hidden="true" /></span>
+            <h2 id="difficulty-heading" className="panel-heading">Difficulty Allocation</h2>
+          </header>
+          <div className="chart-body grow">
+            {total === 0 ? (
+              <div className="empty-state"><Layers3 aria-hidden="true" /><p>Sync your account to see your difficulty breakdown.</p></div>
             ) : (
-              <div className="flex flex-col gap-6">
-                {/* Easy */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-medium text-emerald-400 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      Easy
-                    </span>
-                    <span className="text-gray-400 font-semibold">{difficulty.easy} ({getPercentage(difficulty.easy)}%)</span>
-                  </div>
-                  <div className="w-full bg-gray-900 rounded-full h-2.5 overflow-hidden">
-                    <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${getPercentage(difficulty.easy)}%` }}></div>
-                  </div>
-                </div>
-
-                {/* Medium */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-medium text-amber-400 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                      Medium
-                    </span>
-                    <span className="text-gray-400 font-semibold">{difficulty.medium} ({getPercentage(difficulty.medium)}%)</span>
-                  </div>
-                  <div className="w-full bg-gray-900 rounded-full h-2.5 overflow-hidden">
-                    <div className="bg-amber-500 h-full rounded-full transition-all duration-500" style={{ width: `${getPercentage(difficulty.medium)}%` }}></div>
-                  </div>
-                </div>
-
-                {/* Hard */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-medium text-rose-400 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                      Hard
-                    </span>
-                    <span className="text-gray-400 font-semibold">{difficulty.hard} ({getPercentage(difficulty.hard)}%)</span>
-                  </div>
-                  <div className="w-full bg-gray-900 rounded-full h-2.5 overflow-hidden">
-                    <div className="bg-rose-500 h-full rounded-full transition-all duration-500" style={{ width: `${getPercentage(difficulty.hard)}%` }}></div>
-                  </div>
-                </div>
-              </div>
+              <ul className="grid gap-4">
+                {difficulties.map((level) => {
+                  const count = difficulty[level];
+                  const percent = Math.round((count / total) * 100);
+                  return (
+                    <li key={level} className="grid gap-2">
+                      <div className="flex justify-between gap-2 text-xs">
+                        <span className="font-semibold capitalize" style={{ color: `var(--color-${level})` }}>{level}</span>
+                        <span className="tabular-nums text-muted"><strong className="font-semibold text-ink">{count}</strong> · {percent}%</span>
+                      </div>
+                      <div className="progress-track" aria-hidden="true">
+                        <div className="progress-fill" style={{ width: `${percent}%`, backgroundColor: `var(--color-chart-${level})` }} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
-
-          <div className="border-t border-border-dark/60 pt-4 mt-6 flex justify-between text-xs text-gray-500">
-            <span>Total Sync Count</span>
-            <span className="font-bold text-gray-300">{totalDiff} solved problems</span>
-          </div>
-        </div>
+          <footer className="flex justify-between gap-2 border-t border-line px-4 py-3 text-xs text-muted">
+            <span>Total synced</span>
+            <span className="font-semibold tabular-nums text-ink">{total} solved problems</span>
+          </footer>
+        </section>
       </div>
+
+      {syncFeedback && <Feedback tone={syncFeedback.tone} onDismiss={() => setSyncFeedback(null)}>{syncFeedback.message}</Feedback>}
     </div>
   );
-};
+}

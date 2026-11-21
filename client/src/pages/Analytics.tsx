@@ -1,22 +1,25 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  BarChart3, 
-  Trophy, 
-  Flame, 
-  CheckCircle2, 
-  AlertTriangle,
-  HelpCircle,
-  TrendingUp,
-  Brain,
-  Gauge
-} from 'lucide-react';
+import { Brain, CheckCircle2, Flame, Gauge, TrendingUp, Trophy } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Feedback, PageHeader } from '../components/ui.js';
 import api from '../services/api.js';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie } from 'recharts';
 
-export const Analytics: React.FC = () => {
-  // Fetch Analytics data
-  const { data: analytics, isLoading, error } = useQuery({
+interface AnalyticsData {
+  summary: { streak: number; maxStreak: number; completionRate: number; completedCount: number; totalSolved: number };
+  difficulty: { easy: number; medium: number; hard: number };
+  solvedPerWeek: { weekStart: string; weekRange: string; count: number }[];
+  mostForgottenTopics: { topic: string; forgotRate: number; forgotCount: number; totalCount: number }[];
+}
+
+const tooltipStyle = {
+  backgroundColor: 'var(--color-inset)',
+  border: '1px solid var(--color-line)',
+  borderRadius: 'var(--radius-control)',
+  fontSize: 12,
+};
+
+export function Analytics() {
+  const { data: analytics, isLoading, error } = useQuery<AnalyticsData>({
     queryKey: ['analytics'],
     queryFn: async () => {
       const res = await api.get('/analytics');
@@ -24,210 +27,144 @@ export const Analytics: React.FC = () => {
     },
   });
 
+  const pageHeader = <PageHeader title="Analytics & Progress" description="Track revision retention, problem-solving activity, and topics to revisit." />;
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6 animate-pulse">
-        <div className="h-10 bg-gray-800/60 rounded-xl w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-28 bg-gray-800/60 rounded-2xl"></div>
-          ))}
+      <div className="page-stack" aria-busy="true">
+        {pageHeader}
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[1, 2, 3].map((slot) => <div key={slot} className="skeleton h-24" />)}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="h-80 bg-gray-800/60 rounded-2xl"></div>
-          <div className="h-80 bg-gray-800/60 rounded-2xl"></div>
+        <div className="dashboard-grid">
+          <div className="skeleton h-80" />
+          <div className="skeleton h-80" />
         </div>
       </div>
     );
   }
 
   if (error || !analytics) {
-    return (
-      <div className="p-8 rounded-3xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-center">
-        <p className="font-semibold">Error loading analytics. Please try again.</p>
-      </div>
-    );
+    return <div className="page-stack">{pageHeader}<Feedback tone="error">Could not load analytics.</Feedback></div>;
   }
 
   const { summary, difficulty, solvedPerWeek, mostForgottenTopics } = analytics;
-
   const diffData = [
-    { name: 'Easy', value: difficulty.easy, color: '#10b981' },
-    { name: 'Medium', value: difficulty.medium, color: '#f59e0b' },
-    { name: 'Hard', value: difficulty.hard, color: '#ef4444' },
-  ].filter(d => d.value > 0);
+    { name: 'Easy', value: difficulty.easy, color: 'var(--color-chart-easy)' },
+    { name: 'Medium', value: difficulty.medium, color: 'var(--color-chart-medium)' },
+    { name: 'Hard', value: difficulty.hard, color: 'var(--color-chart-hard)' },
+  ].filter(({ value }) => value > 0);
 
-  const totalSolved = summary.totalSolved;
+  const metrics = [
+    { label: 'Revision streak', value: summary.streak, unit: 'days', context: `Best ${summary.maxStreak} days`, Icon: Flame, color: 'var(--color-medium)' },
+    { label: 'Overall retention', value: `${summary.completionRate}%`, unit: '', context: 'Recall success', Icon: CheckCircle2, color: 'var(--color-easy)' },
+    { label: 'Mastered count', value: summary.completedCount, unit: 'solved', context: 'All 6 stages done', Icon: Trophy, color: 'var(--color-accent-bright)' },
+  ];
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Header */}
-      <div>
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-gray-100 mb-1">
-          Analytics & Progress
-        </h1>
-        <p className="text-xs sm:text-sm text-gray-400">
-          Visualize your revision retention rates, strengths, and pain points over time
-        </p>
-      </div>
+    <div className="page-stack">
+      {pageHeader}
+      <dl className="grid gap-3 min-[960px]:grid-cols-3">
+        {metrics.map(({ label, value, unit, context, Icon, color }) => (
+          <div key={label} className="panel flex items-center justify-between gap-3 p-4">
+            <div>
+              <dt className="text-xs font-semibold text-muted">{label}</dt>
+              <dd className="mt-1 text-[1.625rem] leading-tight font-semibold tabular-nums tracking-tight">
+                {value} <span className="text-xs font-normal tracking-normal text-muted">{unit}</span>
+              </dd>
+              <dd className="mt-1 text-xs text-muted">{context}</dd>
+            </div>
+            <span className="section-icon" style={{ color }}><Icon aria-hidden="true" /></span>
+          </div>
+        ))}
+      </dl>
 
-      {/* Grid Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Revision Streak</span>
-            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100 flex items-center gap-1.5">
-              {summary.streak} <span className="text-xs font-sans font-normal text-gray-500">days</span>
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Max: {summary.maxStreak} days</span>
-          </div>
-          <div className="bg-amber-500/10 text-amber-500 p-3 sm:p-3.5 rounded-xl border border-amber-500/20 shrink-0">
-            <Flame className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
-          </div>
-        </div>
-
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">Overall Retention</span>
-            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
-              {summary.completionRate}%
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-500 truncate">Recall success</span>
-          </div>
-          <div className="bg-emerald-500/10 text-emerald-400 p-3 sm:p-3.5 rounded-xl border border-emerald-500/20 shrink-0">
-            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
-
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl flex items-center justify-between border-border-dark/60 shadow-lg">
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider font-mono">Mastered Count</span>
-            <span className="text-xl sm:text-2xl font-display font-extrabold text-gray-100">
-              {summary.completedCount} <span className="text-xs font-sans font-normal text-gray-500">solved</span>
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-500 truncate">All 6 stages done</span>
-          </div>
-          <div className="bg-purple-500/10 text-purple-400 p-3 sm:p-3.5 rounded-xl border border-purple-500/20 shrink-0">
-            <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Weekly Progress */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between min-w-0">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-indigo-400" />
-              <span>Weekly Solved Progression</span>
-            </h2>
-            <span className="text-[10px] text-gray-500 uppercase font-semibold">Activity</span>
-          </div>
-
-          <div className="h-64 w-full">
-            {totalSolved === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-gray-500 gap-2 border border-dashed border-border-dark/60 rounded-xl">
-                <HelpCircle className="w-8 h-8 opacity-40" />
-                <span>No metrics available</span>
-              </div>
+      <div className="dashboard-grid">
+        <section className="panel" aria-labelledby="weekly-heading">
+          <header className="panel-header">
+            <span className="section-icon"><TrendingUp aria-hidden="true" /></span>
+            <h2 id="weekly-heading" className="panel-heading">Weekly Solved Progression</h2>
+          </header>
+          <div className="chart-body h-64">
+            {summary.totalSolved === 0 ? (
+              <div className="empty-state"><TrendingUp aria-hidden="true" /><p>No metrics available.</p></div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={solvedPerWeek} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <XAxis dataKey="weekStart" stroke="#4b5563" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#4b5563" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }} contentStyle={{ backgroundColor: '#12131a', borderColor: '#1f2230', borderRadius: '12px' }} />
-                  <Bar dataKey="count" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                <BarChart data={solvedPerWeek} margin={{ top: 6, right: 6, left: 0, bottom: 0 }}>
+                  <CartesianGrid vertical={false} stroke="var(--color-line)" strokeDasharray="3 4" />
+                  <XAxis dataKey="weekStart" stroke="var(--color-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis width={28} stroke="var(--color-muted)" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    labelStyle={{ color: 'var(--color-muted)' }}
+                    itemStyle={{ color: 'var(--color-ink)' }}
+                    cursor={{ fill: 'var(--accent-soft)' }}
+                  />
+                  <Bar dataKey="count" name="Problems solved" fill="var(--color-chart-accent)" radius={[4, 4, 0, 0]} maxBarSize={50} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Difficulty Breakdown */}
-        <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col justify-between min-w-0">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
-              <Gauge className="w-5 h-5 text-indigo-400" />
-              <span>Difficulty Distribution</span>
-            </h2>
-            <span className="text-[10px] text-gray-500 uppercase font-semibold">Breakdown</span>
-          </div>
-
-          <div className="h-64 flex items-center justify-center relative">
-            {diffData.length === 0 ? (
-              <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 gap-2 border border-dashed border-border-dark/60 rounded-xl">
-                <HelpCircle className="w-8 h-8 opacity-40" />
-                <span>No problems solved yet</span>
-              </div>
-            ) : (
-              <>
+        <section className="panel" aria-labelledby="distribution-heading">
+          <header className="panel-header">
+            <span className="section-icon"><Gauge aria-hidden="true" /></span>
+            <h2 id="distribution-heading" className="panel-heading">Difficulty Distribution</h2>
+          </header>
+          {diffData.length === 0 ? (
+            <div className="empty-state"><Gauge aria-hidden="true" /><p>No problems solved yet.</p></div>
+          ) : (
+            <>
+              <div className="relative h-53">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={diffData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={65}
-                      outerRadius={85}
-                      paddingAngle={4}
-                      dataKey="value"
-                    >
-                      {diffData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
+                    <Pie data={diffData} cx="50%" cy="50%" innerRadius={60} outerRadius={81} paddingAngle={3} dataKey="value" stroke="none" isAnimationActive={false}>
+                      {diffData.map(({ name, color }) => <Cell key={name} fill={color} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#12131a', borderColor: '#1f2230', borderRadius: '12px' }} />
+                    <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: 'var(--color-ink)' }} />
                   </PieChart>
                 </ResponsiveContainer>
-                
-                {/* Center text */}
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-3xl font-display font-extrabold text-gray-100">{totalSolved}</span>
-                  <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Tracked</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Topic Mastery Map */}
-      <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl">
-        <h2 className="font-display font-bold text-lg text-gray-200 mb-5 flex items-center gap-2">
-          <Brain className="w-5 h-5 text-indigo-400" />
-          <span>Retention pain points by Topic / Tag</span>
-        </h2>
-        <p className="text-xs text-gray-500 mb-5">
-          We track what category of problems you forget. Focus your active recall revision efforts on topics below.
-        </p>
-
-        {mostForgottenTopics.length === 0 ? (
-          <div className="py-12 text-center text-gray-500 text-sm border border-dashed border-border-dark/60 rounded-xl">
-            You currently have a 100% recall retention rate across all tags! Excellent revision consistency.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mostForgottenTopics.map((topic: any) => (
-              <div 
-                key={topic.topic} 
-                className="p-5 rounded-2xl bg-gray-900/40 border border-border-dark/50 flex flex-col gap-3 relative overflow-hidden group hover:border-rose-500/30 transition-all duration-300"
-              >
-                <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/5 rounded-full blur-lg pointer-events-none group-hover:bg-rose-500/10 transition-colors"></div>
-                <div className="flex justify-between items-start gap-3">
-                  <span className="font-display font-bold text-sm text-gray-200 truncate">{topic.topic}</span>
-                  <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                    {topic.forgotRate}% Forget Rate
-                  </span>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  You reset stage back to 1 on {topic.forgotCount} occasions out of {topic.totalCount} total reviews.
+                <div className="pointer-events-none absolute inset-0 grid place-content-center text-center">
+                  <span className="text-3xl font-semibold tabular-nums tracking-tight">{summary.totalSolved}</span>
+                  <span className="text-xs text-muted">Tracked</span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+              <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 px-4 pb-4 text-xs text-muted" aria-label="Difficulty totals">
+                {diffData.map(({ name, value, color }) => (
+                  <li key={name} className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
+                    {name} <strong className="font-semibold tabular-nums text-ink">{value}</strong>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
       </div>
+
+      <section className="panel" aria-labelledby="topic-heading">
+        <header className="panel-header">
+          <span className="section-icon"><Brain aria-hidden="true" /></span>
+          <h2 id="topic-heading" className="panel-heading">Retention by Topic</h2>
+        </header>
+        <div className="chart-body">
+          {mostForgottenTopics.length === 0 ? (
+            <div className="empty-state"><Brain aria-hidden="true" /><p>No missed recalls recorded by topic.</p></div>
+          ) : (
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {mostForgottenTopics.map((topic) => (
+                <li key={topic.topic} className="rounded-control border border-line bg-inset p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h3 className="min-w-0 text-sm font-semibold break-words">{topic.topic}</h3>
+                    <span className="badge" data-tone="medium">{topic.forgotRate}% missed</span>
+                  </div>
+                  <p className="mt-2 text-xs text-muted">Reset to stage 1 on {topic.forgotCount} of {topic.totalCount} reviews.</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
     </div>
   );
-};
+}

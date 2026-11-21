@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
-import { Code2, KeyRound, Mail, User, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Feedback } from '../components/ui.js';
+import { AuthLayout } from '../components/AuthLayout.js';
+import { KeyRound, Mail, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export const Signup: React.FC = () => {
   const { register } = useAuth();
@@ -38,135 +40,82 @@ export const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-dark p-6 relative">
-      {/* Decorative Glows */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <AuthLayout formId="signup-heading" title="Create your account" description="Set up your personal LeetCode revision queue.">
+      {error && <div className="mb-4"><Feedback tone="error">{error}</Feedback></div>}
 
-      <div className="w-full max-w-md glass-panel p-8 rounded-3xl relative z-10 shadow-2xl">
-        {/* Header */}
-        <div className="flex flex-col items-center gap-3 mb-6">
-          <div className="bg-indigo-600 p-3 rounded-2xl text-white shadow-xl shadow-indigo-600/30">
-            <Code2 className="w-8 h-8" />
+      <form onSubmit={handleSubmit} className="grid gap-4" aria-busy={isSubmitting}>
+        <div>
+          <label htmlFor="signup-name" className="field-label">Full name</label>
+          <div className="relative">
+            <User aria-hidden="true" className="field-icon" />
+            <input id="signup-name" type="text" autoComplete="name" required value={name} onChange={(event) => setName(event.target.value)} className="field field-with-icon" />
           </div>
-          <h1 className="font-display font-extrabold text-3xl text-gray-100 tracking-tight text-center">
-            Create Account
-          </h1>
-          <p className="text-sm text-gray-400 text-center">
-            Start retaining your LeetCode patterns long-term
-          </p>
         </div>
-
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-5 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-3 text-rose-400 text-sm">
-            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
-            <span>{error}</span>
+        <div>
+          <label htmlFor="signup-email" className="field-label">Email address</label>
+          <div className="relative">
+            <Mail aria-hidden="true" className="field-icon" />
+            <input id="signup-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="field field-with-icon" />
           </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4.5">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Full Name
-            </label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Aarav Sharma"
-                className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl py-3 pl-12 pr-4 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
-              />
-            </div>
+        </div>
+        <div>
+          <label htmlFor="signup-password" className="field-label">Password</label>
+          <div className="relative">
+            <KeyRound aria-hidden="true" className="field-icon" />
+            <input
+              id="signup-password"
+              aria-describedby="signup-password-hint"
+              type={showPassword ? 'text' : 'password'}
+              required
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="field field-with-icon pr-11"
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              onClick={() => setShowPassword(!showPassword)}
+              className="icon-button absolute right-1 top-1/2 -translate-y-1/2"
+            >
+              {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+            </button>
           </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl py-3 pl-12 pr-4 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
-              />
-            </div>
+          <p id="signup-password-hint" className="field-help">Use at least 6 characters.</p>
+        </div>
+        <div>
+          <label htmlFor="signup-confirmPassword" className="field-label">Confirm password</label>
+          <div className="relative">
+            <KeyRound aria-hidden="true" className="field-icon" />
+            <input
+              id="signup-confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              required
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              className="field field-with-icon pr-11"
+            />
+            <button
+              type="button"
+              aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="icon-button absolute right-1 top-1/2 -translate-y-1/2"
+            >
+              {showConfirmPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+            </button>
           </div>
+        </div>
+        <button type="submit" className="button button-primary" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating account…' : 'Create Account'}
+          {!isSubmitting && <ArrowRight aria-hidden="true" />}
+        </button>
+      </form>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Password (Min 6 chars)
-            </label>
-            <div className="relative">
-              <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl py-3 pl-12 pr-12 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl py-3 pl-12 pr-12 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none"
-              >
-                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-semibold py-3.5 rounded-xl mt-3 transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30"
-          >
-            {isSubmitting ? 'Creating account...' : 'Create Account'}
-            {!isSubmitting && <ArrowRight className="w-4 h-4" />}
-          </button>
-        </form>
-
-        {/* Footer Link */}
-        <p className="mt-6 text-center text-sm text-gray-400">
-          Already have an account?{' '}
-          <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
+      <p className="text-center text-sm text-muted">
+        Already have an account?{' '}
+        <Link to="/login" className="font-bold text-accent-bright underline underline-offset-3">Sign in</Link>
+      </p>
+    </AuthLayout>
   );
 };

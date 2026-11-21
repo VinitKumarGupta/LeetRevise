@@ -8,7 +8,6 @@ import {
   CheckCircle, 
   XCircle, 
   Plus, 
-  HelpCircle,
   AlertCircle
 } from 'lucide-react';
 import api from '../services/api.js';
@@ -22,7 +21,7 @@ export const SyncAccount: React.FC = () => {
   const [isUpdatingUser, setIsUpdatingUser] = useState(false);
 
   // Manual fallback form state
-  const [showManualForm, setShowManualForm] = useState(false);
+  const [, setShowManualForm] = useState(false);
   const [manualSlug, setManualSlug] = useState('');
   const [manualTitle, setManualTitle] = useState('');
   const [manualDifficulty, setManualDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
@@ -147,10 +146,10 @@ export const SyncAccount: React.FC = () => {
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div>
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-gray-100 mb-1">
+        <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-ink mb-1">
           LeetCode Account Sync
         </h1>
-        <p className="text-xs sm:text-sm text-gray-400">
+        <p className="text-xs sm:text-sm text-muted">
           Connect your account to pull latest solved problems, or add revisions manually on failure
         </p>
       </div>
@@ -159,12 +158,12 @@ export const SyncAccount: React.FC = () => {
         {/* Left Column: Connections & Sync */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Account connection */}
-          <div className="glass-panel p-4 sm:p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-            <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-indigo-400" />
+          <div className="panel p-4 sm:p-6 flex flex-col gap-4">
+            <h2 className="font-display font-bold text-lg text-ink flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-accent" />
               <span>Link Account</span>
             </h2>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-muted">
               Enter your public LeetCode username. Your submissions list must be public for the sync to fetch them.
             </p>
 
@@ -174,12 +173,12 @@ export const SyncAccount: React.FC = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="LeetCode Username"
-                className="flex-1 bg-gray-900/60 border border-border-dark/60 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                className="field"
               />
               <button
                 type="submit"
                 disabled={isUpdatingUser}
-                className="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl text-xs transition-all shrink-0 disabled:opacity-50 active:scale-95 shadow-md shadow-indigo-600/10"
+                className="button button-primary"
               >
                 {isUpdatingUser ? 'Saving...' : 'Connect'}
               </button>
@@ -187,26 +186,26 @@ export const SyncAccount: React.FC = () => {
           </div>
 
           {/* Sync Trigger Card */}
-          <div className="glass-panel p-4 sm:p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-            <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
-              <RefreshCw className="w-5 h-5 text-indigo-400" />
+          <div className="panel p-4 sm:p-6 flex flex-col gap-4">
+            <h2 className="font-display font-bold text-lg text-ink flex items-center gap-2">
+              <RefreshCw className="w-5 h-5 text-accent" />
               <span>Synchronize Submissions</span>
             </h2>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-muted leading-relaxed">
               When you click **Sync Now**, the tracker contacts LeetCode's public API to query your latest resolved problems. Only successfully accepted submissions not yet tracked in your revision schedule will be imported.
             </p>
             
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-1 p-4 rounded-xl bg-gray-900/30 border border-border-dark/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-1 p-4 rounded-xl bg-inset border border-line">
               <div className="flex flex-col min-w-0">
-                <span className="text-xs text-gray-400">Connected Profile:</span>
-                <span className="text-sm font-bold text-gray-200 truncate">
+                <span className="text-xs text-muted">Connected Profile:</span>
+                <span className="text-sm font-bold text-ink truncate">
                   {user?.leetcodeUsername ? `@${user.leetcodeUsername}` : 'Not connected'}
                 </span>
               </div>
               <button
                 onClick={() => syncMutation.mutate()}
                 disabled={syncMutation.isPending || !user?.leetcodeUsername}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white transition-all shadow-md shadow-indigo-600/10 active:scale-95 w-full sm:w-auto shrink-0"
+                className="button button-primary w-full sm:w-auto"
               >
                 <RefreshCw className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
                 <span>{syncMutation.isPending ? 'Fetching Submissions...' : 'Sync Now'}</span>
@@ -215,23 +214,23 @@ export const SyncAccount: React.FC = () => {
           </div>
 
           {/* Sync History Logs */}
-          <div className="glass-panel p-4 sm:p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
-            <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
-              <History className="w-5 h-5 text-gray-400" />
+          <div className="panel p-4 sm:p-6 flex flex-col gap-4">
+            <h2 className="font-display font-bold text-lg text-ink flex items-center gap-2">
+              <History className="w-5 h-5 text-muted" />
               <span>Sync Log History</span>
             </h2>
 
             {isLoadingLogs ? (
-              <div className="text-center py-6 text-xs text-gray-500">Loading history logs...</div>
+              <div className="text-center py-6 text-xs text-muted">Loading history logs...</div>
             ) : logs.length === 0 ? (
-              <div className="text-center py-8 text-xs text-gray-500 border border-dashed border-border-dark/60 rounded-xl">
+              <div className="text-center py-8 text-xs text-muted border border-dashed border-line rounded-xl">
                 No sync logs recorded yet.
               </div>
             ) : (
               <div className="overflow-x-auto scrollbar-none">
                 <table className="w-full text-xs text-left">
                   <thead>
-                    <tr className="border-b border-border-dark/60 text-gray-500 uppercase tracking-wider text-[10px]">
+                    <tr className="border-b border-line text-muted uppercase tracking-wider text-[10px]">
                       <th className="pb-3 font-semibold">Timestamp</th>
                       <th className="pb-3 font-semibold">Status</th>
                       <th className="pb-3 font-semibold">
@@ -246,8 +245,8 @@ export const SyncAccount: React.FC = () => {
                   </thead>
                   <tbody>
                     {logs.map((log: any) => (
-                      <tr key={log.id} className="border-b border-border-dark/30 last:border-b-0 hover:bg-gray-900/10">
-                        <td className="py-3.5 text-gray-400">
+                      <tr key={log.id} className="border-b border-line last:border-b-0 hover:bg-inset">
+                        <td className="py-3.5 text-muted">
                           {new Date(log.syncedAt).toLocaleString()}
                         </td>
                         <td className="py-3.5">
@@ -261,8 +260,8 @@ export const SyncAccount: React.FC = () => {
                             </span>
                           )}
                         </td>
-                        <td className="py-3.5 font-bold text-gray-200">{log.newProblemsCount}</td>
-                        <td className="py-3.5 text-gray-500">{log.duplicatesSkippedCount}</td>
+                        <td className="py-3.5 font-bold text-ink">{log.newProblemsCount}</td>
+                        <td className="py-3.5 text-muted">{log.duplicatesSkippedCount}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -274,14 +273,14 @@ export const SyncAccount: React.FC = () => {
 
         {/* Right Column: Manual Fallback Form */}
         <div className="flex flex-col gap-6">
-          <div className="glass-panel p-6 rounded-2xl border-border-dark/60 shadow-xl flex flex-col gap-4">
+          <div className="panel p-6 flex flex-col gap-4">
             <div className="flex justify-between items-center">
-              <h2 className="font-display font-bold text-lg text-gray-200 flex items-center gap-2">
-                <Plus className="w-5 h-5 text-indigo-400" />
+              <h2 className="font-display font-bold text-lg text-ink flex items-center gap-2">
+                <Plus className="w-5 h-5 text-accent" />
                 <span>Manual Import</span>
               </h2>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted">
               If LeetCode limits syncing or a problem doesn't appear in the recent submissions list, add it manually.
             </p>
 
@@ -301,7 +300,7 @@ export const SyncAccount: React.FC = () => {
             <form onSubmit={handleManualAddSubmit} className="flex flex-col gap-4.5 mt-2">
               {/* Slug input */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <label className="text-xs font-semibold text-muted uppercase tracking-wider">
                   LeetCode URL or Problem Slug
                 </label>
                 <input
@@ -310,20 +309,20 @@ export const SyncAccount: React.FC = () => {
                   value={manualSlug}
                   onChange={(e) => setManualSlug(e.target.value)}
                   placeholder="e.g. two-sum or full URL"
-                  className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                  className="field"
                 />
               </div>
 
               {/* Extra details (shown if LeetCode check fails or username is rate-limited) */}
               {needsManualDetails && (
-                <div className="border-t border-border-dark pt-4 flex flex-col gap-4 animate-fade-in">
+                <div className="border-t border-line pt-4 flex flex-col gap-4 animate-fade-in">
                   <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-300 text-[11px] leading-relaxed">
                     <strong>Note:</strong> We couldn't fetch details automatically. Please supply details manually.
                   </div>
 
                   {/* Title */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">
                       Problem Title
                     </label>
                     <input
@@ -332,19 +331,19 @@ export const SyncAccount: React.FC = () => {
                       value={manualTitle}
                       onChange={(e) => setManualTitle(e.target.value)}
                       placeholder="e.g. Two Sum"
-                      className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                      className="field"
                     />
                   </div>
 
                   {/* Difficulty */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">
                       Difficulty
                     </label>
                     <select
                       value={manualDifficulty}
                       onChange={(e) => setManualDifficulty(e.target.value as any)}
-                      className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                      className="field"
                     >
                       <option value="Easy">Easy</option>
                       <option value="Medium">Medium</option>
@@ -354,7 +353,7 @@ export const SyncAccount: React.FC = () => {
 
                   {/* Topics */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">
                       Tags / Topics (comma-separated)
                     </label>
                     <input
@@ -362,13 +361,13 @@ export const SyncAccount: React.FC = () => {
                       value={manualTopics}
                       onChange={(e) => setManualTopics(e.target.value)}
                       placeholder="e.g. Array, Hash Table"
-                      className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                      className="field"
                     />
                   </div>
 
                   {/* URL */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">
                       LeetCode URL (optional)
                     </label>
                     <input
@@ -376,13 +375,13 @@ export const SyncAccount: React.FC = () => {
                       value={manualUrl}
                       onChange={(e) => setManualUrl(e.target.value)}
                       placeholder="https://leetcode.com/problems/..."
-                      className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                      className="field"
                     />
                   </div>
 
                   {/* Solved Date */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">
                       Solve Date
                     </label>
                     <input
@@ -390,7 +389,7 @@ export const SyncAccount: React.FC = () => {
                       required
                       value={manualSolvedAt}
                       onChange={(e) => setManualSolvedAt(e.target.value)}
-                      className="w-full bg-gray-900/60 border border-border-dark/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/80 transition-colors"
+                      className="field"
                     />
                   </div>
                 </div>
@@ -400,7 +399,7 @@ export const SyncAccount: React.FC = () => {
               <button
                 type="submit"
                 disabled={manualAddMutation.isPending}
-                className="w-full bg-gray-900 hover:bg-gray-800 border border-border-dark text-gray-200 font-semibold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 active:scale-98 disabled:opacity-50"
+                className="w-full bg-inset hover:bg-raised border border-line text-ink font-semibold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 active:scale-98 disabled:opacity-50"
               >
                 {manualAddMutation.isPending ? 'Processing...' : needsManualDetails ? 'Save Problem' : 'Verify & Add'}
               </button>
@@ -412,7 +411,7 @@ export const SyncAccount: React.FC = () => {
                     setNeedsManualDetails(false);
                     setManualError(null);
                   }}
-                  className="w-full text-center text-xs text-gray-500 hover:text-gray-400 transition-colors"
+                  className="w-full text-center text-xs text-muted hover:text-muted transition-colors"
                 >
                   Cancel manual details
                 </button>
