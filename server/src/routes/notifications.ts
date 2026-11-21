@@ -24,6 +24,53 @@ function safeToIsoString(val: any): string {
 }
 
 /**
+ * Evaluates whether a user's scheduled alert time matches the current time in their configured timezone.
+ * Returns { shouldAlert: boolean, localDateKey: string }
+ */
+function checkUserAlertTiming(
+    user: { timezone: string; reminderTime: string },
+    now: Date = new Date(),
+): { shouldAlert: boolean; localDateKey: string } {
+    const tz = user.timezone || "UTC";
+    let localDateKey: string;
+    let currentHour: number;
+    let currentMinute: number;
+
+    try {
+        localDateKey = now.toLocaleDateString("en-CA", { timeZone: tz }); // "YYYY-MM-DD"
+        const formatter = new Intl.DateTimeFormat("en-US", {
+            timeZone: tz,
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+        const parts = formatter.formatToParts(now);
+        currentHour = parseInt(parts.find((p) => p.type === "hour")?.value || "0", 10);
+        currentMinute = parseInt(parts.find((p) => p.type === "minute")?.value || "0", 10);
+    } catch {
+        localDateKey = now.toISOString().split("T")[0];
+        currentHour = now.getUTCHours();
+        currentMinute = now.getUTCMinutes();
+    }
+
+    const [targetHourStr, targetMinuteStr] = (user.reminderTime || "09:00").split(":");
+    const targetHour = parseInt(targetHourStr, 10) || 0;
+    const targetMinute = parseInt(targetMinuteStr, 10) || 0;
+
+    const currentTotalMinutes = currentHour * 60 + currentMinute;
+    const targetTotalMinutes = targetHour * 60 + targetMinute;
+
+    // Check if the current time falls within a 60-minute delivery window
+    // (with a 5-minute pre-buffer to accommodate minor cron clock jitter).
+    // Because each user can only receive one digest per local calendar day (localDateKey),
+    // the first recurring cron execution that enters this window triggers the email.
+    const diff = currentTotalMinutes - targetTotalMinutes;
+    const shouldAlert = diff >= -5 && diff < 60;
+
+    return { shouldAlert, localDateKey };
+}
+
+/**
  * POST /api/notifications/test-email
  * Authenticated endpoint: Sends an immediate test revision digest to the logged-in user.
  */
@@ -268,8 +315,16 @@ router.all("/send-due-reminders", async (req, res) => {
                 continue;
             }
 
-            // Prevent duplicate reminder sends on the same calendar day
-            if (!force && userLastReminderDate.get(user.id) === todayDateKey) {
+            // Check if it is time to send for this user according to their timezone and alert time
+            const { shouldAlert, localDateKey } = checkUserAlertTiming(user, now);
+
+            if (!force && !shouldAlert) {
+                skippedCount++;
+                continue;
+            }
+
+            // Prevent duplicate reminder sends on the same calendar day in user's timezone
+            if (!force && userLastReminderDate.get(user.id) === localDateKey) {
                 skippedCount++;
                 continue;
             }
@@ -322,7 +377,7 @@ router.all("/send-due-reminders", async (req, res) => {
 
             if (result.success) {
                 sentCount++;
-                userLastReminderDate.set(user.id, todayDateKey);
+                userLastReminderDate.set(user.id, localDateKey);
             } else {
                 errors.push({
                     email: user.email,

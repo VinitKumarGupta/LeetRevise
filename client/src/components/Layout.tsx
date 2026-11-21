@@ -245,36 +245,30 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                 <div className="flex flex-col gap-4 border-t border-border-dark/60 pt-6 mt-6">
                     {/* Daily Revision Progress Card */}
-                    <div className="rounded-xl border border-border-dark/60 bg-gradient-to-br from-gray-900/60 via-gray-900/40 to-indigo-950/20 p-3 shadow-sm">
+                    <div className="rounded-xl border border-border-dark/60 bg-gray-900/40 p-3 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                <div className={`p-1.5 rounded-lg ${todayRevisedCount >= 3 ? "bg-emerald-500/20 text-emerald-400" : "bg-indigo-500/20 text-indigo-400"}`}>
-                                    {todayRevisedCount >= 3 ? (
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                    ) : (
-                                        <Target className="w-3.5 h-3.5 text-indigo-400" />
-                                    )}
-                                </div>
-                                <span className="text-xs font-semibold text-gray-200">
-                                    Daily Agenda
-                                </span>
-                            </div>
-                            <span className={`text-[11px] font-bold font-mono px-2 py-0.5 rounded-md ${
-                                todayRevisedCount >= 3
-                                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                                    : "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20"
+                            <span className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                                {todayRevisedCount >= 3 ? (
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                ) : (
+                                    <Target className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                                )}
+                                Daily Goal
+                            </span>
+                            <span className={`text-xs font-bold font-mono ${
+                                todayRevisedCount >= 3 ? "text-emerald-400" : "text-indigo-300"
                             }`}>
-                                {todayRevisedCount}/3 revised
+                                {todayRevisedCount}/3
                             </span>
                         </div>
 
                         {/* Progress Bar Track */}
-                        <div className="w-full bg-gray-800/80 rounded-full h-2 overflow-hidden border border-border-dark/30">
+                        <div className="w-full bg-gray-800/80 rounded-full h-1.5 overflow-hidden">
                             <div
                                 className={`h-full rounded-full transition-all duration-700 ease-out ${
                                     todayRevisedCount >= 3
-                                        ? "bg-gradient-to-r from-emerald-500 to-teal-400"
-                                        : "bg-gradient-to-r from-indigo-500 via-indigo-400 to-purple-500"
+                                        ? "bg-emerald-500"
+                                        : "bg-indigo-500"
                                 }`}
                                 style={{
                                     width: `${Math.min(100, Math.round((todayRevisedCount / 3) * 100))}%`,
@@ -285,9 +279,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">
                             <span>
                                 {todayRevisedCount >= 3
-                                    ? "Goal achieved today! 🎉"
+                                    ? "Goal achieved! 🎉"
                                     : todayRevisedCount === 0
-                                    ? "3 revisions to hit goal"
+                                    ? "3 to revise today"
                                     : `${3 - todayRevisedCount} remaining today`}
                             </span>
                             <span className="font-semibold text-gray-400 font-mono">
