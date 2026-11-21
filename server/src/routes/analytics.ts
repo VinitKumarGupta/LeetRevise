@@ -62,16 +62,20 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
       orderBy: { syncedAt: 'desc' },
     });
 
-    // 4. Calculate Streaks (Revision Streak)
+    // 4. Calculate Streaks & Today's Revised Count
     // Get all review dates (excluding skips)
     const reviews = await db.reviewHistory.findMany({
       where: {
         solvedProblem: { userId },
         result: { in: ['easy', 'effort', 'forgot'] },
       },
-      select: { reviewedAt: true },
+      select: { reviewedAt: true, solvedProblemId: true },
       orderBy: { reviewedAt: 'desc' },
     });
+
+    // Count unique problems revised today
+    const todayReviews = reviews.filter((r) => new Date(r.reviewedAt) >= startOfToday);
+    const todayRevisedCount = new Set(todayReviews.map((r) => r.solvedProblemId)).size;
 
     // Extract unique dates in YYYY-MM-DD
     const reviewDates = Array.from(
@@ -239,6 +243,7 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
         streak: currentStreak,
         maxStreak,
         completionRate,
+        todayRevisedCount,
       },
       difficulty: {
         easy: easySolved,
