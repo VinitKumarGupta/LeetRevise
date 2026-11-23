@@ -16,6 +16,7 @@ model User {
   leetcodeUsername String?
   timezone         String          @default("UTC")
   reminderTime     String          @default("09:00")
+  revisionEmailsPaused Boolean     @default(false)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   solvedProblems   SolvedProblem[]

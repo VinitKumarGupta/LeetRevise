@@ -9,6 +9,14 @@ const router = Router();
 // In-memory cache to prevent duplicate cron notifications on the same calendar day (YYYY-MM-DD)
 const userLastReminderDate = new Map<string, string>();
 
+async function canSendRevisionEmail(userId: string): Promise<boolean> {
+    const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { revisionEmailsPaused: true },
+    });
+    return user?.revisionEmailsPaused === false;
+}
+
 /**
  * Safely converts Date or date-like value to ISO string without throwing
  */
@@ -87,6 +95,10 @@ router.post(
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
+            }
+
+            if (user.revisionEmailsPaused) {
+                return res.status(409).json({ message: "Resume revision emails before sending a test email." });
             }
 
             const now = new Date();
@@ -190,6 +202,10 @@ router.post(
                 (req.headers.origin as string) ||
                 "http://localhost:5173";
 
+            if (!(await canSendRevisionEmail(userId))) {
+                return res.status(409).json({ message: "Revision email is currently unavailable for this account." });
+            }
+
             const result = await emailService.sendRevisionDigest(
                 user.email,
                 user.name,
@@ -272,6 +288,7 @@ router.all("/send-due-reminders", async (req, res) => {
         // Fetch users who have active due problems (with retry in case serverless DB connection is cold)
         const fetchUsersWithDueProblems = () =>
             db.user.findMany({
+                where: { revisionEmailsPaused: false },
                 include: {
                     solvedProblems: {
                         where: {
@@ -363,6 +380,12 @@ router.all("/send-due-reminders", async (req, res) => {
                 isStarred: item.isStarred,
                 solvedAt: safeToIsoString(item.solvedAt),
             }));
+
+            // Check again in case the user paused while this run was processing other accounts.
+            if (!(await canSendRevisionEmail(user.id))) {
+                skippedCount++;
+                continue;
+            }
 
             const result = await emailService.sendRevisionDigest(
                 user.email,

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Activity, AlertTriangle, ArrowRight, ChevronRight, Flame, History, Layers3, RefreshCw } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, Bell, BellOff, ChevronRight, Flame, History, Layers3, Pause, Play, RefreshCw } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 import api from '../services/api.js';
 import { Leaderboard } from '../components/Leaderboard.js';
 import { DifficultyBadge, Feedback, PageHeader } from '../components/ui.js';
+import { useAuth } from '../context/AuthContext.js';
 
 interface RecentProblem {
   id: string;
@@ -24,6 +25,42 @@ interface DashboardData {
 
 const difficulties = ['easy', 'medium', 'hard'] as const;
 const reviewDate = (date: string) => new Date(date).toLocaleDateString(undefined, { dateStyle: 'medium' });
+
+function RevisionEmailControl() {
+  const { user, updateProfile } = useAuth();
+  const paused = user?.revisionEmailsPaused ?? false;
+  const preferences = useMutation({
+    mutationFn: (revisionEmailsPaused: boolean) => updateProfile({ revisionEmailsPaused }),
+  });
+  const ReminderIcon = paused ? BellOff : Bell;
+  const ActionIcon = paused ? Play : Pause;
+
+  return (
+    <section className="panel grid gap-3 p-3" aria-labelledby="revision-email-heading">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="section-icon"><ReminderIcon aria-hidden="true" /></span>
+          <div>
+            <h2 id="revision-email-heading" className="panel-heading">Revision emails</h2>
+            <p className="text-sm text-muted" role="status">
+              {paused ? 'Emails are paused until you resume. Your review queue is still available.' : 'Pause your email reminders whenever you need a break.'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="button button-secondary button-small"
+          onClick={() => preferences.mutate(!paused)}
+          disabled={preferences.isPending}
+        >
+          <ActionIcon aria-hidden="true" />
+          {preferences.isPending ? 'Saving…' : paused ? 'Resume Revision' : 'Pause Revision'}
+        </button>
+      </div>
+      {preferences.isError && <Feedback tone="error">{preferences.error.message}</Feedback>}
+    </section>
+  );
+}
 
 export function Dashboard() {
   const queryClient = useQueryClient();
@@ -64,6 +101,7 @@ export function Dashboard() {
     return (
       <div className="page-stack" aria-busy="true">
         <PageHeader title={title} description={description} />
+        <RevisionEmailControl />
         <div className="skeleton h-13" />
         <div className="dashboard-grid">
           <div className="skeleton h-88" />
@@ -77,6 +115,7 @@ export function Dashboard() {
     return (
       <div className="page-stack">
         <PageHeader title={title} description={description} />
+        <RevisionEmailControl />
         <Feedback tone="error">Could not load the dashboard. Refresh the page or sign in again.</Feedback>
       </div>
     );
@@ -119,6 +158,8 @@ export function Dashboard() {
         />
         <img className="dashboard-art" src="/study-buddy.jpg" width="960" height="720" alt="" />
       </div>
+
+      <RevisionEmailControl />
 
       {summary.dueCount > 0 && (
         <section className="revision-reminder" aria-label="Revision reminder">

@@ -18,7 +18,7 @@ LeetRevise is a spaced repetition app for coding interview practice. Import solv
 
 - **Daily goal and streaks.** Track three reviews a day and see your current and best streaks.
 - **Practice analytics.** See weekly solve activity, difficulty breakdown, and topics you’ve had trouble recalling.
-- **Email reminders.** Choose your timezone and reminder time. The digest includes due reviews and can surface older problems you haven’t reviewed yet.
+- **Email reminders.** Choose your timezone and reminder time. The digest includes due reviews and can surface older problems you haven’t reviewed yet. Use **Pause Revision** on the dashboard to take a break from emails and resume whenever you’re ready.
 - **Community leaderboard.** Compare scores, solved counts, and streaks across weekly, monthly, and all-time views.
 
 ## Contributing

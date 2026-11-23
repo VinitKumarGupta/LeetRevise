@@ -8,6 +8,7 @@ export interface User {
   leetcodeUsername: string | null;
   timezone: string;
   reminderTime: string;
+  revisionEmailsPaused: boolean;
   createdAt?: string;
 }
 

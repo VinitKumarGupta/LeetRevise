@@ -24,6 +24,7 @@ const profileUpdateSchema = z.object({
   leetcodeUsername: z.string().nullable().optional(),
   timezone: z.string().optional(),
   reminderTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format').optional(),
+  revisionEmailsPaused: z.boolean().optional(),
 });
 
 // Helper to sign JWT and set cookie
@@ -73,6 +74,7 @@ router.post('/register', async (req, res) => {
         leetcodeUsername: user.leetcodeUsername,
         timezone: user.timezone,
         reminderTime: user.reminderTime,
+        revisionEmailsPaused: user.revisionEmailsPaused,
       },
     });
   } catch (error: any) {
@@ -110,6 +112,7 @@ router.post('/login', async (req, res) => {
         leetcodeUsername: user.leetcodeUsername,
         timezone: user.timezone,
         reminderTime: user.reminderTime,
+        revisionEmailsPaused: user.revisionEmailsPaused,
       },
     });
   } catch (error: any) {
@@ -143,6 +146,7 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
         leetcodeUsername: true,
         timezone: true,
         reminderTime: true,
+        revisionEmailsPaused: true,
         createdAt: true,
       },
     });
@@ -173,6 +177,7 @@ router.patch('/profile', authenticateToken, async (req: AuthenticatedRequest, re
         leetcodeUsername: true,
         timezone: true,
         reminderTime: true,
+        revisionEmailsPaused: true,
       },
     });
 
