@@ -1,21 +1,17 @@
 import { useState } from 'react';
-import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, CheckCircle2, CircleHelp, Target } from 'lucide-react';
 
 const target = 3;
 export const practiceListUrl = 'https://neetcode.io/practice/practice/neetcode250';
 
-function GoalProgress({ label, count, help }: { label: string; count?: number; help?: ReactNode }) {
+function GoalProgress({ label, count }: { label: string; count?: number }) {
   const progress = count === undefined ? undefined : Math.min(count, target);
   return (
     <div className="grid gap-1.5">
       <div className="goal-row">
-        <div className="flex items-center gap-1">
-          <span>{label}</span>
-          {help}
-        </div>
-        <span className="flex items-center gap-1 tabular-nums">
+        <span>{label}</span>
+        <span className="flex shrink-0 items-center gap-1 whitespace-nowrap tabular-nums">
           {progress === target && <CheckCircle2 className="size-3.5 text-easy" aria-hidden="true" />}
           {progress ?? '—'} / {target}
         </span>
@@ -40,42 +36,37 @@ export function DailyGoal({ solved, reviewed, unavailable, onNavigate }: {
   return (
     <section className="goal" aria-labelledby="daily-goal-title">
       <div className="goal-title">
-        <h2 id="daily-goal-title" className="flex items-center gap-2">
-          <GoalIcon className={goalMet ? 'text-easy' : 'text-accent'} aria-hidden="true" />
-          Daily Goal
-        </h2>
+        <div className="flex items-center gap-1">
+          <h2 id="daily-goal-title" className="flex items-center gap-2">
+            <GoalIcon className={goalMet ? 'text-easy' : 'text-accent'} aria-hidden="true" />
+            Daily Goal
+          </h2>
+          <button
+            type="button"
+            className="icon-button goal-help-button"
+            aria-label="How new solves are counted"
+            aria-expanded={showSolveHelp}
+            aria-controls="solve-goal-help"
+            onClick={() => setShowSolveHelp((open) => !open)}
+            onBlur={() => setShowSolveHelp(false)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && showSolveHelp) {
+                event.stopPropagation();
+                setShowSolveHelp(false);
+              }
+            }}
+          >
+            <CircleHelp aria-hidden="true" />
+          </button>
+        </div>
         {goalMet && <span role="status" className="text-easy">Complete</span>}
+        <p id="solve-goal-help" className="goal-help" hidden={!showSolveHelp}>
+          Use Sync Now to import accepted LeetCode submissions, or add a solve in Settings under Manual Import. Each new problem counts on its recorded solve date.
+        </p>
       </div>
       <div className="grid gap-3">
         <div className="grid gap-1.5">
-          <GoalProgress
-            label="Solve new problems"
-            count={solved}
-            help={
-              <>
-                <button
-                  type="button"
-                  className="icon-button goal-help-button"
-                  aria-label="How new solves are counted"
-                  aria-expanded={showSolveHelp}
-                  aria-controls="solve-goal-help"
-                  onClick={() => setShowSolveHelp((open) => !open)}
-                  onBlur={() => setShowSolveHelp(false)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Escape' && showSolveHelp) {
-                      event.stopPropagation();
-                      setShowSolveHelp(false);
-                    }
-                  }}
-                >
-                  <CircleHelp aria-hidden="true" />
-                </button>
-                <p id="solve-goal-help" className="goal-help" hidden={!showSolveHelp}>
-                  Use Sync Now to import accepted LeetCode submissions, or add a solve in Settings under Manual Import. Each new problem counts on its recorded solve date.
-                </p>
-              </>
-            }
-          />
+          <GoalProgress label="Solve new problems" count={solved} />
           <div className="goal-links">
             <a href={practiceListUrl} target="_blank" rel="noreferrer" onClick={onNavigate}>
               Find a problem <ArrowUpRight className="size-3" aria-hidden="true" />

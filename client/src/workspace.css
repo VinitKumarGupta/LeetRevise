@@ -61,9 +61,9 @@
 .goal { padding: 13px; background: var(--color-mint); border: 1px solid var(--accent-line); border-radius: 16px; }
 .goal .progress-track { background: #c9ddc3; }
 .goal-title, .goal-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.goal-title { margin-bottom: 10px; font-size: .8125rem; font-weight: 800; }
+.goal-title { position: relative; margin-bottom: 10px; font-size: .8125rem; font-weight: 800; }
 .goal-title svg { width: 15px; height: 15px; }
-.goal-row { position: relative; font-size: .75rem; font-weight: 700; }
+.goal-row { font-size: .75rem; font-weight: 700; }
 .goal-help-button { width: 24px; height: 24px; margin-block: -3px; }
 .goal-help-button svg { width: 14px; height: 14px; }
 .goal-help {
