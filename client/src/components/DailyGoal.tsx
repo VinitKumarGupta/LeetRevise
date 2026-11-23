@@ -1,15 +1,20 @@
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, CheckCircle2, Target } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, CircleHelp, Target } from 'lucide-react';
 
 const target = 3;
 export const practiceListUrl = 'https://neetcode.io/practice/practice/neetcode250';
 
-function GoalProgress({ label, count }: { label: string; count?: number }) {
+function GoalProgress({ label, count, help }: { label: string; count?: number; help?: ReactNode }) {
   const progress = count === undefined ? undefined : Math.min(count, target);
   return (
     <div className="grid gap-1.5">
       <div className="goal-row">
-        <span>{label}</span>
+        <div className="flex items-center gap-1">
+          <span>{label}</span>
+          {help}
+        </div>
         <span className="flex items-center gap-1 tabular-nums">
           {progress === target && <CheckCircle2 className="size-3.5 text-easy" aria-hidden="true" />}
           {progress ?? '—'} / {target}
@@ -30,6 +35,7 @@ export function DailyGoal({ solved, reviewed, unavailable, onNavigate }: {
 }) {
   const goalMet = (solved ?? 0) >= target && (reviewed ?? 0) >= target;
   const GoalIcon = goalMet ? CheckCircle2 : Target;
+  const [showSolveHelp, setShowSolveHelp] = useState(false);
 
   return (
     <section className="goal" aria-labelledby="daily-goal-title">
@@ -42,12 +48,38 @@ export function DailyGoal({ solved, reviewed, unavailable, onNavigate }: {
       </div>
       <div className="grid gap-3">
         <div className="grid gap-1.5">
-          <GoalProgress label="Solve new problems" count={solved} />
+          <GoalProgress
+            label="Solve new problems"
+            count={solved}
+            help={
+              <>
+                <button
+                  type="button"
+                  className="icon-button goal-help-button"
+                  aria-label="How new solves are counted"
+                  aria-expanded={showSolveHelp}
+                  aria-controls="solve-goal-help"
+                  onClick={() => setShowSolveHelp((open) => !open)}
+                  onBlur={() => setShowSolveHelp(false)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape' && showSolveHelp) {
+                      event.stopPropagation();
+                      setShowSolveHelp(false);
+                    }
+                  }}
+                >
+                  <CircleHelp aria-hidden="true" />
+                </button>
+                <p id="solve-goal-help" className="goal-help" hidden={!showSolveHelp}>
+                  Use Sync Now to import accepted LeetCode submissions, or add a solve in Settings under Manual Import. Each new problem counts on its recorded solve date.
+                </p>
+              </>
+            }
+          />
           <div className="goal-links">
             <a href={practiceListUrl} target="_blank" rel="noreferrer" onClick={onNavigate}>
               Find a problem <ArrowUpRight className="size-3" aria-hidden="true" />
             </a>
-            <Link to="/settings#manual-import" onClick={onNavigate}>Mark as solved</Link>
           </div>
         </div>
         <div className="grid gap-1.5">

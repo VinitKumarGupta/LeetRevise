@@ -63,7 +63,22 @@
 .goal-title, .goal-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .goal-title { margin-bottom: 10px; font-size: .8125rem; font-weight: 800; }
 .goal-title svg { width: 15px; height: 15px; }
-.goal-row { font-size: .75rem; font-weight: 700; }
+.goal-row { position: relative; font-size: .75rem; font-weight: 700; }
+.goal-help-button { width: 24px; height: 24px; margin-block: -3px; }
+.goal-help-button svg { width: 14px; height: 14px; }
+.goal-help {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 0;
+  inset-block-start: calc(100% + 5px);
+  padding: 9px 10px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  background: var(--color-inset);
+  box-shadow: var(--paper-shadow);
+  color: var(--color-ink);
+  font-weight: 500;
+}
 .goal-links { display: flex; flex-wrap: wrap; column-gap: 9px; }
 .goal-links a { display: inline-flex; align-items: center; gap: 3px; min-height: 24px; color: var(--color-accent-bright); font-size: .75rem; font-weight: 750; text-decoration: underline; text-underline-offset: 2px; }
 .sidebar-quote { padding: 1px 4px 1px 10px; margin: 2px 0 2px 4px; border-inline-start: 1px solid var(--color-control); color: var(--color-muted); font-size: .75rem; font-style: italic; line-height: 1.55; }
