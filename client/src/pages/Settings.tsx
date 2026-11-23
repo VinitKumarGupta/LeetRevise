@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -17,6 +18,15 @@ import { Feedback, PageHeader } from '../components/ui.js';
 export const Settings: React.FC = () => {
   const queryClient = useQueryClient();
   const { user, updateProfile } = useAuth();
+  const { hash, key } = useLocation();
+  const manualInput = useRef<HTMLInputElement>(null);
+  const manualDate = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (hash !== '#manual-import') return;
+    manualInput.current?.closest('section')?.scrollIntoView({ block: 'start' });
+    manualInput.current?.focus({ preventScroll: true });
+  }, [hash, key]);
 
   // ── Profile Settings state ──────────────────────────────────────────────
   const [name, setName] = useState(user?.name || '');
@@ -41,7 +51,6 @@ export const Settings: React.FC = () => {
   const [manualDifficulty, setManualDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
   const [manualTopics, setManualTopics] = useState('');
   const [manualUrl, setManualUrl] = useState('');
-  const [manualSolvedAt, setManualSolvedAt] = useState(new Date().toISOString().split('T')[0]);
   const [needsManualDetails, setNeedsManualDetails] = useState(false);
   const [manualMessage, setManualMessage] = useState<string | null>(null);
   const [manualError, setManualError] = useState<string | null>(null);
@@ -152,6 +161,7 @@ export const Settings: React.FC = () => {
       setManualTitle('');
       setManualTopics('');
       setManualUrl('');
+      if (manualDate.current) manualDate.current.value = '';
       setNeedsManualDetails(false);
       queryClient.invalidateQueries({ queryKey: ['problems'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
@@ -175,7 +185,7 @@ export const Settings: React.FC = () => {
       return;
     }
 
-    const payload: any = { titleSlug: manualSlug };
+    const payload: any = { titleSlug: manualSlug, solvedOn: manualDate.current?.value || undefined };
     if (needsManualDetails) {
       if (!manualTitle.trim()) {
         setManualError('Title is required for manual entry.');
@@ -185,7 +195,6 @@ export const Settings: React.FC = () => {
       payload.difficulty = manualDifficulty;
       payload.topics = manualTopics;
       payload.url = manualUrl;
-      payload.solvedAt = new Date(manualSolvedAt).toISOString();
     }
     manualAddMutation.mutate(payload);
   };
@@ -241,12 +250,12 @@ export const Settings: React.FC = () => {
           </div>
         </section>
 
-        <section className="panel settings-section" aria-labelledby="import-heading">
+        <section id="manual-import" className="panel settings-section" aria-labelledby="import-heading">
           <header>
             <span className="section-icon"><Plus aria-hidden="true" /></span>
             <div>
               <h2 id="import-heading" className="panel-heading">Manual Import</h2>
-              <p>Add a solved problem that didn’t come through on a sync.</p>
+              <p>Mark a problem as solved if it hasn’t synced from LeetCode.</p>
             </div>
           </header>
 
@@ -257,6 +266,7 @@ export const Settings: React.FC = () => {
                   <label htmlFor="manual-slug" className="field-label">LeetCode URL or problem slug</label>
                   <input
                     id="manual-slug"
+                    ref={manualInput}
                     type="text"
                     required
                     className="field"
@@ -273,6 +283,12 @@ export const Settings: React.FC = () => {
                     {manualAddMutation.isPending ? 'Verifying…' : 'Verify & Add'}
                   </button>
                 )}
+              </div>
+
+              <div>
+                <label htmlFor="manual-date" className="field-label">Solve date (optional)</label>
+                <input id="manual-date" ref={manualDate} type="date" className="field max-w-56" aria-describedby="manual-date-help" />
+                <p id="manual-date-help" className="field-help">Leave blank for today in your account timezone.</p>
               </div>
 
               {needsManualDetails && (
@@ -298,10 +314,6 @@ export const Settings: React.FC = () => {
                     <div>
                       <label htmlFor="manual-url" className="field-label">LeetCode URL (optional)</label>
                       <input id="manual-url" type="url" className="field" value={manualUrl} onChange={(e) => setManualUrl(e.target.value)} placeholder="https://leetcode.com/problems/…" />
-                    </div>
-                    <div>
-                      <label htmlFor="manual-date" className="field-label">Solve date</label>
-                      <input id="manual-date" type="date" required className="field" value={manualSolvedAt} onChange={(e) => setManualSolvedAt(e.target.value)} />
                     </div>
                   </div>
                   <div className="settings-actions">

@@ -1,6 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import {
     LayoutDashboard,
     CalendarRange,
@@ -13,11 +12,10 @@ import {
     X,
     AlertTriangle,
     ArrowUpRight,
-    Target,
-    CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.js";
-import api from "../services/api.js";
+import { useAnalytics } from "../services/useAnalytics.js";
+import { DailyGoal, practiceListUrl } from "./DailyGoal.js";
 import { Modal } from "./ui.js";
 import { Brand } from "./Brand.js";
 
@@ -65,18 +63,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         if (mainContent.current) mainContent.current.scrollTop = 0;
     }, [location.pathname]);
 
-    const { data: analytics } = useQuery({
-        queryKey: ["analytics"],
-        queryFn: async () => {
-            const res = await api.get("/analytics");
-            return res.data;
-        },
-        enabled: !!user,
-        refetchInterval: 30 * 1000,
-    });
+    const { data: analytics, isError } = useAnalytics();
 
     const dueCount = analytics?.summary?.dueCount ?? 0;
-    const todayRevisedCount = analytics?.summary?.todayRevisedCount ?? 0;
 
     useEffect(() => {
         if (!user) {
@@ -111,16 +100,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         { name: "Analytics", path: "/analytics", icon: BarChart3 },
         {
             name: "NeetCode 250",
-            path: "https://neetcode.io/practice/practice/neetcode250",
+            path: practiceListUrl,
             icon: BookOpen,
             external: true,
         },
         { name: "Settings", path: "/settings", icon: Settings },
     ];
-
-    const goalMet = todayRevisedCount >= 3;
-    const goalPercent = Math.min(100, Math.round((todayRevisedCount / 3) * 100));
-    const GoalIcon = goalMet ? CheckCircle2 : Target;
 
     const menuToggle = useRef<HTMLButtonElement>(null);
     const menuClose = useRef<HTMLButtonElement>(null);
@@ -221,29 +206,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </nav>
 
                     <div className="sidebar-bottom">
-                        <section className="goal" aria-labelledby="daily-goal-title">
-                            <div className="goal-title">
-                                <h2 id="daily-goal-title" className="flex items-center gap-2">
-                                    <GoalIcon className={goalMet ? 'text-easy' : 'text-accent'} aria-hidden="true" />
-                                    Daily Goal
-                                </h2>
-                                <span className="tabular-nums text-muted">{todayRevisedCount} / 3</span>
-                            </div>
-                            <div
-                                className="progress-track"
-                                role="progressbar"
-                                aria-labelledby="daily-goal-title"
-                                aria-valuemin={0}
-                                aria-valuemax={3}
-                                aria-valuenow={Math.min(todayRevisedCount, 3)}
-                            >
-                                <div className="progress-fill" style={{ width: `${goalPercent}%`, backgroundColor: goalMet ? 'var(--color-easy)' : undefined }} />
-                            </div>
-                            <div className="goal-caption">
-                                <span>{goalMet ? 'Goal achieved' : `${3 - todayRevisedCount} remaining today`}</span>
-                                <span className="tabular-nums">{goalPercent}%</span>
-                            </div>
-                        </section>
+                        <DailyGoal
+                            solved={analytics?.summary.todaySolvedCount}
+                            reviewed={analytics?.summary.todayRevisedCount}
+                            unavailable={isError && !analytics}
+                            onNavigate={closeMenu}
+                        />
 
                         <blockquote className="sidebar-quote">
                             “Mastery isn’t grinding 10 new problems a day. It’s grinding 3 new problems and revising 3 old ones on time.”

@@ -60,10 +60,12 @@
 .sidebar-bottom { display: grid; gap: 13px; margin-block-start: auto; }
 .goal { padding: 13px; background: var(--color-mint); border: 1px solid var(--accent-line); border-radius: 16px; }
 .goal .progress-track { background: #c9ddc3; }
-.goal-title, .goal-caption { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.goal-title, .goal-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .goal-title { margin-bottom: 10px; font-size: .8125rem; font-weight: 800; }
 .goal-title svg { width: 15px; height: 15px; }
-.goal-caption { margin-top: 7px; color: var(--color-muted); font-size: .75rem; }
+.goal-row { font-size: .75rem; font-weight: 700; }
+.goal-links { display: flex; flex-wrap: wrap; column-gap: 9px; }
+.goal-links a { display: inline-flex; align-items: center; gap: 3px; min-height: 24px; color: var(--color-accent-bright); font-size: .75rem; font-weight: 750; text-decoration: underline; text-underline-offset: 2px; }
 .sidebar-quote { padding: 1px 4px 1px 10px; margin: 2px 0 2px 4px; border-inline-start: 1px solid var(--color-control); color: var(--color-muted); font-size: .75rem; font-style: italic; line-height: 1.55; }
 .sidebar-account { display: flex; align-items: center; gap: 9px; padding: 12px 4px 0; border-top: 1px solid var(--line-soft); }
 .avatar { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border: 1px solid var(--accent-line); border-radius: var(--radius-control); background: var(--accent-soft); color: var(--color-accent-bright); font-size: .75rem; font-weight: 650; }
@@ -87,21 +89,6 @@
 .sync-value[data-failed="true"] { color: var(--color-hard); }
 .streak-best, .sync-label { color: var(--color-muted); font-size: .6875rem; line-height: 1.35; }
 .sync-status { text-align: start; font-variant-numeric: tabular-nums; }
-.revision-reminder {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 14px;
-  padding: 10px 12px 10px 15px;
-  border: 1px solid color-mix(in srgb, var(--color-medium) 24%, var(--color-line));
-  border-radius: var(--radius-panel);
-  background: #fff2ce;
-}
-.revision-reminder > div { display: flex; align-items: center; gap: 10px; color: var(--color-subtle); font-size: .8125rem; }
-.revision-reminder > div > svg { width: 17px; height: 17px; color: var(--color-medium); flex: none; }
-.revision-reminder strong { color: var(--color-ink); font-weight: 650; }
-.reminder-action { border-color: color-mix(in srgb, var(--color-medium) 26%, var(--color-line)); color: var(--color-medium); }
-.reminder-action:hover { background: color-mix(in srgb, var(--color-medium) 11%, var(--color-panel)); }
 
 .dashboard-grid { display: grid; gap: 18px; }
 .panel-header { display: flex; align-items: center; gap: 10px; min-height: 66px; padding: 12px 17px; border-bottom: 1px solid var(--line-soft); }
@@ -334,6 +321,4 @@
   .queue-selects .field { width: min(72%, 245px); }
   .queue-card { align-items: stretch; flex-direction: column; }
   .queue-meta { align-items: flex-start; border-top: 1px solid var(--line-soft); padding-top: 9px; }
-  .revision-reminder { align-items: flex-start; flex-wrap: wrap; }
-  .revision-reminder > div { align-self: center; }
 }

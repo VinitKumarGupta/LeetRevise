@@ -88,6 +88,7 @@ export const Queue: React.FC = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["problems"] });
+            queryClient.invalidateQueries({ queryKey: ["analytics"] });
         },
     });
 

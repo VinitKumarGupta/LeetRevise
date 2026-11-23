@@ -1,15 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { Brain, CheckCircle2, Flame, Gauge, TrendingUp, Trophy } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Feedback, PageHeader } from '../components/ui.js';
-import api from '../services/api.js';
-
-interface AnalyticsData {
-  summary: { streak: number; maxStreak: number; completionRate: number; completedCount: number; totalSolved: number };
-  difficulty: { easy: number; medium: number; hard: number };
-  solvedPerWeek: { weekStart: string; weekRange: string; count: number }[];
-  mostForgottenTopics: { topic: string; forgotRate: number; forgotCount: number; totalCount: number }[];
-}
+import { useAnalytics } from '../services/useAnalytics.js';
 
 const tooltipStyle = {
   backgroundColor: 'var(--color-inset)',
@@ -19,13 +11,7 @@ const tooltipStyle = {
 };
 
 export function Analytics() {
-  const { data: analytics, isLoading, error } = useQuery<AnalyticsData>({
-    queryKey: ['analytics'],
-    queryFn: async () => {
-      const res = await api.get('/analytics');
-      return res.data;
-    },
-  });
+  const { data: analytics, isLoading, error } = useAnalytics();
 
   const pageHeader = <PageHeader title="Analytics & Progress" description="Track revision retention, problem-solving activity, and topics to revisit." />;
   if (isLoading) {

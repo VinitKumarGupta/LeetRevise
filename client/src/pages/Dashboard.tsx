@@ -1,27 +1,13 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Activity, AlertTriangle, ArrowRight, Bell, BellOff, ChevronRight, Flame, History, Layers3, Pause, Play, RefreshCw } from 'lucide-react';
+import { Activity, Bell, BellOff, ChevronRight, Flame, History, Layers3, Pause, Play, RefreshCw } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 import api from '../services/api.js';
 import { Leaderboard } from '../components/Leaderboard.js';
 import { DifficultyBadge, Feedback, PageHeader } from '../components/ui.js';
 import { useAuth } from '../context/AuthContext.js';
-
-interface RecentProblem {
-  id: string;
-  title: string;
-  difficulty: string;
-  solvedAt: string;
-}
-
-interface DashboardData {
-  summary: { streak: number; maxStreak: number; dueCount: number };
-  difficulty: { easy: number; medium: number; hard: number };
-  lastSync: { success: boolean; syncedAt: string; newProblemsCount: number } | null;
-  solvedPerWeek: { weekStart: string; weekRange: string; count: number }[];
-  latestProblems: RecentProblem[];
-}
+import { useAnalytics } from '../services/useAnalytics.js';
 
 const difficulties = ['easy', 'medium', 'hard'] as const;
 const reviewDate = (date: string) => new Date(date).toLocaleDateString(undefined, { dateStyle: 'medium' });
@@ -66,14 +52,7 @@ export function Dashboard() {
   const queryClient = useQueryClient();
   const [syncFeedback, setSyncFeedback] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
 
-  const { data: analytics, isLoading, error } = useQuery<DashboardData>({
-    queryKey: ['analytics'],
-    queryFn: async () => {
-      const res = await api.get('/analytics');
-      return res.data;
-    },
-    refetchInterval: 30 * 1000,
-  });
+  const { data: analytics, isLoading, error } = useAnalytics();
 
   const syncMutation = useMutation({
     mutationFn: async () => {
@@ -83,6 +62,7 @@ export function Dashboard() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['problems'] });
       queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
       setSyncFeedback({
         tone: 'success',
@@ -160,18 +140,6 @@ export function Dashboard() {
       </div>
 
       <RevisionEmailControl />
-
-      {summary.dueCount > 0 && (
-        <section className="revision-reminder" aria-label="Revision reminder">
-          <div>
-            <AlertTriangle aria-hidden="true" />
-            <p><strong>{summary.dueCount} {summary.dueCount === 1 ? 'problem' : 'problems'} due</strong> for review today</p>
-          </div>
-          <Link to="/queue" className="button button-small reminder-action">
-            Revise Now <ArrowRight aria-hidden="true" />
-          </Link>
-        </section>
-      )}
 
       <div className="dashboard-grid">
         <Leaderboard />

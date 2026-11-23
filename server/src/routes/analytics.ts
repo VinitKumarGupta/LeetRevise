@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import db from '../db.js';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
+import { getDailyGoal } from '../utils/dailyGoal.js';
 
 const router = Router();
 
@@ -11,13 +12,14 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     // 1. Fetch user's solved problems
-    const solvedProblems = await db.solvedProblem.findMany({
-      where: { userId },
-      include: {
-        problem: true,
-        history: true,
-      },
-    });
+    const [solvedProblems, user] = await Promise.all([
+      db.solvedProblem.findMany({
+        where: { userId },
+        include: { problem: true, history: true },
+      }),
+      db.user.findUnique({ where: { id: userId }, select: { timezone: true } }),
+    ]);
+    const dailyGoal = getDailyGoal(solvedProblems, user?.timezone ?? 'UTC', now);
 
     const totalSolved = solvedProblems.length;
 
@@ -62,20 +64,16 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
       orderBy: { syncedAt: 'desc' },
     });
 
-    // 4. Calculate Streaks & Today's Revised Count
+    // 4. Calculate streaks
     // Get all review dates (excluding skips)
     const reviews = await db.reviewHistory.findMany({
       where: {
         solvedProblem: { userId },
         result: { in: ['easy', 'effort', 'forgot'] },
       },
-      select: { reviewedAt: true, solvedProblemId: true },
+      select: { reviewedAt: true },
       orderBy: { reviewedAt: 'desc' },
     });
-
-    // Count unique problems revised today
-    const todayReviews = reviews.filter((r) => new Date(r.reviewedAt) >= startOfToday);
-    const todayRevisedCount = new Set(todayReviews.map((r) => r.solvedProblemId)).size;
 
     // Extract unique dates in YYYY-MM-DD
     const reviewDates = Array.from(
@@ -243,7 +241,7 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
         streak: currentStreak,
         maxStreak,
         completionRate,
-        todayRevisedCount,
+        ...dailyGoal,
       },
       difficulty: {
         easy: easySolved,

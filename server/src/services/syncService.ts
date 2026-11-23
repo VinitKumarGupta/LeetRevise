@@ -140,10 +140,11 @@ export async function syncUserSubmissions(userId: string, username: string): Pro
       (sub) => sub.statusDisplay === 'Accepted'
     );
 
-    // 3. Deduplicate submissions by titleSlug (in case user submitted multiple times)
+    // 3. Keep each problem's earliest accepted timestamp in the fetched history.
     const uniqueSolvedSlugs = new Map<string, Submission>();
     for (const sub of solvedSubmissions) {
-      if (!uniqueSolvedSlugs.has(sub.titleSlug)) {
+      const previous = uniqueSolvedSlugs.get(sub.titleSlug);
+      if (!previous || Number(sub.timestamp) < Number(previous.timestamp)) {
         uniqueSolvedSlugs.set(sub.titleSlug, sub);
       }
     }

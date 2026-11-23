@@ -4,6 +4,7 @@ import db from '../db.js';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.js';
 import { syncUserSubmissions } from '../services/syncService.js';
 import { calculateNextReview } from '../utils/scheduler.js';
+import { resolveSolveDate } from '../utils/localDay.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ const manualAddSchema = z.object({
   topics: z.string().optional(),
   url: z.string().optional(),
   solvedAt: z.string().datetime().optional(),
+  solvedOn: z.string().date().optional(),
 });
 
 // Trigger LeetCode account sync
@@ -64,6 +66,16 @@ router.post('/manual', authenticateToken, async (req: AuthenticatedRequest, res)
   try {
     const body = manualAddSchema.parse(req.body);
     const userId = req.user!.id;
+    const now = new Date();
+    let solvedAt = body.solvedAt ? new Date(body.solvedAt) : now;
+    if (body.solvedOn) {
+      const user = await db.user.findUnique({ where: { id: userId }, select: { timezone: true } });
+      const resolved = resolveSolveDate(body.solvedOn, user?.timezone ?? 'UTC', now);
+      if (!resolved) {
+        return res.status(400).json({ message: 'Choose a valid solve date on or before today.' });
+      }
+      solvedAt = resolved;
+    }
 
     // Clean up titleSlug in case a full URL was provided
     let slug = body.titleSlug.trim();
@@ -89,8 +101,6 @@ router.post('/manual', authenticateToken, async (req: AuthenticatedRequest, res)
     let problem = await db.problem.findUnique({
       where: { titleSlug: slug },
     });
-
-    const solvedAt = body.solvedAt ? new Date(body.solvedAt) : new Date();
 
     if (!problem) {
       // If we have custom fields provided by manual fallback form, create it
